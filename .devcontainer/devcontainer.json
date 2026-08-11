@@ -1,5 +1,8 @@
 // For format details, see https://aka.ms/devcontainer.json
 {
   "name": "gridiro-styles",
-  "image": "ghcr.io/oxybot/node:24"
+  "image": "ghcr.io/oxybot/node:24",
+  "containerEnv": {
+    "CHOKIDAR_USEPOLLING": "true"
+  }
 }
