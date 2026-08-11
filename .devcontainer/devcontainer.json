@@ -1,0 +1,5 @@
+// For format details, see https://aka.ms/devcontainer.json
+{
+  "name": "gridiro-styles",
+  "image": "ghcr.io/oxybot/node:24"
+}
