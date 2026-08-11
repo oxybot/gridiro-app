@@ -2,7 +2,7 @@
 @import "open-props/postcss/normalize";
 
 .diagram {
-  background-color: var(--lime-3);
+  background-color: var(--lime-1);
   height: 400px;
 }
 
@@ -20,4 +20,6 @@ svg path.grid {
 svg path.hover {
   fill: var(--blue-6);
   stroke: none;
+  pointer-events: none;
+  transition: opacity 160ms ease-out;
 }
