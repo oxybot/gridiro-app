@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { isoflowIcons, type IsoflowIcon } from "./assets/isoflowIcons";
 
 const grid = {
   width: 80,
-  height: 60,
+  height: 50,
 };
 
 const midWidth = grid.width / 2;
@@ -11,6 +12,8 @@ const midHeight = grid.height / 2;
 type Node = {
   x: number;
   y: number;
+  label: string;
+  icon: IsoflowIcon;
 };
 
 type MenuState = {
@@ -33,6 +36,7 @@ export default function App() {
     side: "left" as "left" | "right",
     kind: "empty",
   });
+  const [editingNode, setEditingNode] = useState<Node | null>(null);
 
   const snapToIsoGrid = (localX: number, localY: number) => {
     const offsetX = localX - midWidth;
@@ -69,6 +73,7 @@ export default function App() {
     const node = nodes.find((currentNode) => currentNode.x === snappedPoint.x && currentNode.y === snappedPoint.y);
 
     setHoverPos(snappedPoint);
+    setEditingNode(null);
     setMenu({
       isOpen: true,
       x: snappedPoint.x,
@@ -84,8 +89,27 @@ export default function App() {
   };
 
   const handleAddNode = () => {
-    setNodes((previousNodes) => [...previousNodes, { x: menu.x, y: menu.y }]);
+    setNodes((previousNodes) => [...previousNodes, { x: menu.x, y: menu.y, label: "New node", icon: isoflowIcons.icons[0] }]);
     closeMenu();
+  };
+
+  const handleEditNode = () => {
+    if (menu.node) {
+      setEditingNode(menu.node);
+      closeMenu();
+    }
+  };
+
+  const updateEditingNode = (changes: Partial<Node>) => {
+    if (!editingNode) {
+      return;
+    }
+
+    const updatedNode = { ...editingNode, ...changes };
+    setEditingNode(updatedNode);
+    setNodes((previousNodes) =>
+      previousNodes.map((node) => node.x === editingNode.x && node.y === editingNode.y ? updatedNode : node),
+    );
   };
 
   const handleRemoveNode = () => {
@@ -142,6 +166,15 @@ export default function App() {
           {nodes.map((node, index) => (
             <g key={index} transform={`translate(${node.x} ${node.y})`}>
               <ellipse cx="0" cy="0" rx={0.3 * midWidth} ry={0.3 * midHeight} stroke="black" fill="white" />
+              <image
+                className="node-icon"
+                href={node.icon.url}
+                x={-midWidth}
+                y={midHeight - (node.icon.height / node.icon.width * grid.width)}
+                width={grid.width}
+                preserveAspectRatio="xMidYMax meet"
+              />
+              <text className="node-label" x="0" y={midHeight * 0.65}>{node.label}</text>
             </g>
           ))}
         </svg>
@@ -159,11 +192,43 @@ export default function App() {
               </>
             ) : (
               <>
-                <button type="button">Edit node</button>
+                <button type="button" onClick={handleEditNode}>Edit node</button>
                 <button type="button" onClick={handleRemoveNode}>Remove node</button>
               </>
             )}
           </div>
+        )}
+        {editingNode && (
+          <aside className="node-editor" onClick={(event) => event.stopPropagation()}>
+            <div className="node-editor-header">
+              <h2>Edit node</h2>
+              <button className="close-editor" type="button" onClick={() => setEditingNode(null)} aria-label="Close editor">×</button>
+            </div>
+            <label>
+              Label
+              <input
+                type="text"
+                value={editingNode.label}
+                onChange={(event) => updateEditingNode({ label: event.target.value })}
+              />
+            </label>
+            <fieldset>
+              <legend>Icon</legend>
+              <div className="icon-options">
+                {isoflowIcons.icons.map((icon) => (
+                  <button
+                    className={editingNode.icon.id === icon.id ? "selected" : ""}
+                    type="button"
+                    key={icon.id}
+                    onClick={() => updateEditingNode({ icon })}
+                    aria-label={`Select ${icon.name} icon`}
+                  >
+                    <img src={icon.url} alt={icon.name} />
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+          </aside>
         )}
       </section>
     </>

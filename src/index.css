@@ -41,12 +41,27 @@ section {
       stroke-width: 2;
       transition: opacity 160ms ease-out;
     }
+
+    text {
+      pointer-events: none;
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+
+    text.node-icon {
+      font-size: 1.25rem;
+    }
+
+    text.node-label {
+      font-size: 0.75rem;
+      fill: var(--gray-8);
+    }
   }
 }
 
 .diagram-menu {
   position: absolute;
-  z-index: var(--layer-3);
+  z-index: var(--layer-1);
   display: grid;
   gap: var(--size-1);
   padding: var(--size-2);
@@ -74,5 +89,81 @@ section {
     &:hover {
       background-color: var(--gray-2);
     }
+  }
+}
+
+.node-editor {
+  position: absolute;
+  inset: var(--size-3) var(--size-3) var(--size-3) auto;
+  z-index: var(--layer-3);
+  width: min(16rem, calc(100% - var(--size-6)));
+  padding: var(--size-3);
+  border: var(--border-size-2) var(--gray-4) solid;
+  border-radius: var(--radius-2);
+  background-color: var(--gray-0);
+  box-shadow: var(--shadow-3);
+
+  .node-editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--size-3);
+  }
+
+  h2 {
+    margin: 0;
+    font-size: var(--font-size-2);
+  }
+
+  label,
+  fieldset {
+    display: grid;
+    gap: var(--size-1);
+    margin: 0 0 var(--size-3);
+    font-size: var(--font-size-1);
+  }
+
+  input {
+    min-width: 0;
+    padding: var(--size-1) var(--size-2);
+    border: var(--border-size-1) var(--gray-5) solid;
+    border-radius: var(--radius-1);
+  }
+
+  fieldset {
+    border: 0;
+    padding: 0;
+  }
+
+  legend {
+    padding: 0;
+  }
+
+  .icon-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, var(--size-8));
+    gap: var(--size-1);
+
+    button {
+      min-width: var(--size-8);
+      min-height: var(--size-8);
+      border: var(--border-size-1) transparent solid;
+      border-radius: var(--radius-1);
+      background: transparent;
+      cursor: pointer;
+
+      &:hover,
+      &.selected {
+        border-color: var(--blue-6);
+        background-color: var(--blue-1);
+      }
+    }
+  }
+
+  .close-editor {
+    min-width: 1.5rem;
+    min-height: 1.5rem;
+    font-size: 1.25rem;
+    line-height: 1;
   }
 }
