@@ -23,6 +23,13 @@
       pointer-events: none;
       transition: opacity 160ms ease-out;
     }
+
+    path.menu-selection {
+      fill: none;
+      stroke: var(--blue-9);
+      stroke-width: 2;
+      transition: opacity 160ms ease-out;
+    }
   }
 }
 

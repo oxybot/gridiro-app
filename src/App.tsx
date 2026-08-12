@@ -1,5 +1,13 @@
 import { useState } from "react";
 
+const grid = {
+  width: 80,
+  height: 60,
+};
+
+const midWidth = grid.width / 2;
+const midHeight = grid.height / 2;
+
 export default function App() {
   const [nodes, setNodes] = useState<Array<{ x: number; y: number }>>([]);
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 });
@@ -11,16 +19,7 @@ export default function App() {
     side: "left" as "left" | "right",
   });
 
-  const grid = {
-    width: 80,
-    height: 60,
-  };
-
-  const midWidth = grid.width / 2;
-  const midHeight = grid.height / 2;
-
   const snapToIsoGrid = (localX: number, localY: number) => {
-    // Snap against an isometric lattice instead of independent x/y spacing.
     const offsetX = localX - midWidth;
     const offsetY = localY - midHeight;
 
@@ -99,6 +98,17 @@ export default function App() {
             transform={`translate(${hoverPos.x - midWidth} ${hoverPos.y - midHeight})`}
             style={{ opacity: isHovering ? 1 : 0 }}
           />
+
+          {/* Menu selection */}
+          {menu.isOpen && (
+            <path
+              className="menu-selection"
+              d={`M 0 ${midHeight} L ${midWidth} 0 ${grid.width} ${midHeight} ${midWidth} ${grid.height} 0 ${midHeight}`}
+              transform={`translate(${menu.x - midWidth} ${menu.y - midHeight})`}
+              style={{ opacity: isHovering ? 1 : 0 }}
+            />
+          )}
+
 
           {/* Nodes */}
           {nodes.map((node, index) => (
