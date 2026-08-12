@@ -3,6 +3,7 @@ import { useState } from "react";
 export default function App() {
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
+  const [menu, setMenu] = useState({ isOpen: false, x: 0, y: 0, side: "left" as "left" | "right" });
 
   const grid = {
     width: 80,
@@ -12,11 +13,7 @@ export default function App() {
   const midWidth = grid.width / 2;
   const midHeight = grid.height / 2;
 
-  const handleMouseMove = (event: React.MouseEvent<SVGSVGElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const localX = event.clientX - rect.left;
-    const localY = event.clientY - rect.top;
-
+  const snapToIsoGrid = (localX: number, localY: number) => {
     // Snap against an isometric lattice instead of independent x/y spacing.
     const offsetX = localX - midWidth;
     const offsetY = localY - midHeight;
@@ -27,13 +24,41 @@ export default function App() {
     const snappedU = Math.round(isoU);
     const snappedV = Math.round(isoV);
 
-    const snappedX = (snappedU + snappedV) * midWidth + midWidth;
-    const snappedY = (snappedU - snappedV) * midHeight + midHeight;
+    return {
+      x: (snappedU + snappedV) * midWidth + midWidth,
+      y: (snappedU - snappedV) * midHeight + midHeight,
+    };
+  };
 
-    setHoverPos({
-      x: snappedX,
-      y: snappedY,
+  const handleMouseMove = (event: React.MouseEvent<SVGSVGElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const localX = event.clientX - rect.left;
+    const localY = event.clientY - rect.top;
+
+    setHoverPos(snapToIsoGrid(localX, localY));
+  };
+
+  const handleSvgClick = (event: React.MouseEvent<SVGSVGElement>) => {
+    event.stopPropagation();
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const localX = event.clientX - rect.left;
+    const localY = event.clientY - rect.top;
+    const snappedPoint = snapToIsoGrid(localX, localY);
+    const side = snappedPoint.x > 2 * rect.width / 3 ? "right" : "left";
+    const x = side === "left" ? snappedPoint.x : rect.width - snappedPoint.x;
+
+    setHoverPos(snappedPoint);
+    setMenu({
+      isOpen: true,
+      x,
+      y: snappedPoint.y,
+      side,
     });
+  };
+
+  const closeMenu = () => {
+    setMenu((previous) => ({ ...previous, isOpen: false }));
   };
 
   return (
@@ -41,12 +66,13 @@ export default function App() {
       <section>
         <h1>Welcome to the Gridiro Hackathon App</h1>
       </section>
-      <section className="diagram">
+      <section className="diagram" onClick={closeMenu}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
           onMouseMove={handleMouseMove}
+          onClick={handleSvgClick}
         >
           <defs>
             <pattern id="grid" width={grid.width} height={grid.height} patternUnits="userSpaceOnUse">
@@ -61,6 +87,17 @@ export default function App() {
             style={{ opacity: isHovering ? 1 : 0 }}
           />
         </svg>
+        {menu.isOpen && (
+          <div
+            className={`diagram-menu ${menu.side}`}
+            style={menu.side === "left" ? { left: menu.x, top: menu.y } : { right: menu.x, top: menu.y }}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button type="button">Add node</button>
+            <button type="button">Add text</button>
+            <button type="button">Add group</button>
+          </div>
+        )}
       </section>
     </>
   )
