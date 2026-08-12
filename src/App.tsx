@@ -102,7 +102,7 @@ export default function App() {
   return (
     <>
       <section>
-        <h1>Welcome to the Gridiro Hackathon App</h1>
+        <h1>Gridiro Hackathon App</h1>
       </section>
       <section className="diagram" onClick={closeMenu}>
         <svg
@@ -134,7 +134,6 @@ export default function App() {
               className="menu-selection"
               d={`M 0 ${midHeight} L ${midWidth} 0 ${grid.width} ${midHeight} ${midWidth} ${grid.height} 0 ${midHeight}`}
               transform={`translate(${menu.x - midWidth} ${menu.y - midHeight})`}
-              style={{ opacity: isHovering ? 1 : 0 }}
             />
           )}
 

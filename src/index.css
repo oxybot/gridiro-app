@@ -7,13 +7,16 @@
   flex-direction: column;
 }
 
+section {
+  margin: var(--size-2) var(--size-4);
+}
+
 .diagram {
   flex: 1;
   position: relative;
   border: var(--border-size-2) var(--gray-4) solid;
   border-radius: var(--radius-3);
   background-color: var(--lime-1);
-  margin: var(--size-2) var(--size-4);
 
   svg {
     width: 100%;
