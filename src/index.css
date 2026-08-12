@@ -1,11 +1,19 @@
 @import "open-props/postcss/style";
 @import "open-props/postcss/normalize";
 
+#root {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
 .diagram {
-  background-color: var(--lime-1);
-  height: 400px;
+  flex: 1;
   position: relative;
-  overflow: hidden;
+  border: var(--border-size-2) var(--gray-4) solid;
+  border-radius: var(--radius-3);
+  background-color: var(--lime-1);
+  margin: var(--size-2) var(--size-4);
 
   svg {
     width: 100%;

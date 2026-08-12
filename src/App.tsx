@@ -8,15 +8,30 @@ const grid = {
 const midWidth = grid.width / 2;
 const midHeight = grid.height / 2;
 
+type Node = {
+  x: number;
+  y: number;
+};
+
+type MenuState = {
+  isOpen: boolean;
+  x: number;
+  y: number;
+  side: "left" | "right";
+  kind: "empty" | "node";
+  node?: Node;
+};
+
 export default function App() {
-  const [nodes, setNodes] = useState<Array<{ x: number; y: number }>>([]);
+  const [nodes, setNodes] = useState<Node[]>([]);
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
-  const [menu, setMenu] = useState({
+  const [menu, setMenu] = useState<MenuState>({
     isOpen: false,
     x: 0,
     y: 0,
     side: "left" as "left" | "right",
+    kind: "empty",
   });
 
   const snapToIsoGrid = (localX: number, localY: number) => {
@@ -51,6 +66,7 @@ export default function App() {
     const localY = event.clientY - rect.top;
     const snappedPoint = snapToIsoGrid(localX, localY);
     const side = snappedPoint.x > 2 * rect.width / 3 ? "right" : "left";
+    const node = nodes.find((currentNode) => currentNode.x === snappedPoint.x && currentNode.y === snappedPoint.y);
 
     setHoverPos(snappedPoint);
     setMenu({
@@ -58,6 +74,8 @@ export default function App() {
       x: snappedPoint.x,
       y: snappedPoint.y,
       side,
+      kind: node ? "node" : "empty",
+      node,
     });
   };
 
@@ -67,6 +85,17 @@ export default function App() {
 
   const handleAddNode = () => {
     setNodes((previousNodes) => [...previousNodes, { x: menu.x, y: menu.y }]);
+    closeMenu();
+  };
+
+  const handleRemoveNode = () => {
+    if (!menu.node) {
+      return;
+    }
+
+    setNodes((previousNodes) =>
+      previousNodes.filter((node) => node.x !== menu.node?.x || node.y !== menu.node?.y),
+    );
     closeMenu();
   };
 
@@ -123,9 +152,18 @@ export default function App() {
             style={{ left: menu.x, top: menu.y }}
             onClick={(event) => event.stopPropagation()}
           >
-            <button type="button" onClick={handleAddNode}>Add node</button>
-            <button type="button">Add text</button>
-            <button type="button">Add group</button>
+            {menu.kind === "empty" ? (
+              <>
+                <button type="button" onClick={handleAddNode}>Add node</button>
+                <button type="button">Add text</button>
+                <button type="button">Add group</button>
+              </>
+            ) : (
+              <>
+                <button type="button">Edit node</button>
+                <button type="button" onClick={handleRemoveNode}>Remove node</button>
+              </>
+            )}
           </div>
         )}
       </section>
