@@ -1,9 +1,15 @@
 import { useState } from "react";
 
 export default function App() {
+  const [nodes, setNodes] = useState<Array<{ x: number; y: number }>>([]);
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
-  const [menu, setMenu] = useState({ isOpen: false, x: 0, y: 0, side: "left" as "left" | "right" });
+  const [menu, setMenu] = useState({
+    isOpen: false,
+    x: 0,
+    y: 0,
+    side: "left" as "left" | "right",
+  });
 
   const grid = {
     width: 80,
@@ -46,12 +52,11 @@ export default function App() {
     const localY = event.clientY - rect.top;
     const snappedPoint = snapToIsoGrid(localX, localY);
     const side = snappedPoint.x > 2 * rect.width / 3 ? "right" : "left";
-    const x = side === "left" ? snappedPoint.x : rect.width - snappedPoint.x;
 
     setHoverPos(snappedPoint);
     setMenu({
       isOpen: true,
-      x,
+      x: snappedPoint.x,
       y: snappedPoint.y,
       side,
     });
@@ -59,6 +64,11 @@ export default function App() {
 
   const closeMenu = () => {
     setMenu((previous) => ({ ...previous, isOpen: false }));
+  };
+
+  const handleAddNode = () => {
+    setNodes((previousNodes) => [...previousNodes, { x: menu.x, y: menu.y }]);
+    closeMenu();
   };
 
   return (
@@ -74,26 +84,36 @@ export default function App() {
           onMouseMove={handleMouseMove}
           onClick={handleSvgClick}
         >
+          {/* Background grid */}
           <defs>
             <pattern id="grid" width={grid.width} height={grid.height} patternUnits="userSpaceOnUse">
               <path className="grid" d={`M 0 ${midHeight} L ${midWidth} 0 ${grid.width} ${midHeight} ${midWidth} ${grid.height} 0 ${midHeight}`} />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#grid)" />
+
+          {/* Hover indicator */}
           <path
             className="hover"
             d={`M 0 ${midHeight} L ${midWidth} 0 ${grid.width} ${midHeight} ${midWidth} ${grid.height} 0 ${midHeight}`}
             transform={`translate(${hoverPos.x - midWidth} ${hoverPos.y - midHeight})`}
             style={{ opacity: isHovering ? 1 : 0 }}
           />
+
+          {/* Nodes */}
+          {nodes.map((node, index) => (
+            <g key={index} transform={`translate(${node.x} ${node.y})`}>
+              <ellipse cx="0" cy="0" rx={0.3 * midWidth} ry={0.3 * midHeight} stroke="black" fill="white" />
+            </g>
+          ))}
         </svg>
         {menu.isOpen && (
           <div
             className={`diagram-menu ${menu.side}`}
-            style={menu.side === "left" ? { left: menu.x, top: menu.y } : { right: menu.x, top: menu.y }}
+            style={{ left: menu.x, top: menu.y }}
             onClick={(event) => event.stopPropagation()}
           >
-            <button type="button">Add node</button>
+            <button type="button" onClick={handleAddNode}>Add node</button>
             <button type="button">Add text</button>
             <button type="button">Add group</button>
           </div>
