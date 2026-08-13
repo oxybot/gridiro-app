@@ -64,6 +64,14 @@ section {
       stroke: var(--gray-12);
       stroke-width: 1;
     }
+
+    g.node {
+      cursor: grab;
+
+      &:active {
+        cursor: grabbing;
+      }
+    }
   }
 }
 

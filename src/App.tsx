@@ -16,6 +16,11 @@ type Node = {
   icon: IsoflowIcon;
 };
 
+type DragState = {
+  node: Node;
+  pointerOffset: { x: number; y: number };
+};
+
 type MenuState = {
   isOpen: boolean;
   x: number;
@@ -57,6 +62,8 @@ export default function App() {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
+  const [draggingNode, setDraggingNode] = useState<DragState | null>(null);
+  const didDragRef = useRef(false);
   const [menu, setMenu] = useState<MenuState>({
     isOpen: false,
     x: 0,
@@ -90,8 +97,70 @@ export default function App() {
     setHoverPos(snapToIsoGrid(localX, localY));
   };
 
+  const getPointerPosition = (event: React.PointerEvent<SVGElement>) => {
+    const svg = event.currentTarget.ownerSVGElement;
+    if (!svg) {
+      return null;
+    }
+
+    const rect = svg.getBoundingClientRect();
+    return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+  };
+
+  const handleNodePointerDown = (event: React.PointerEvent<SVGGElement>, node: Node) => {
+    event.stopPropagation();
+    const pointerPosition = getPointerPosition(event);
+    if (!pointerPosition) {
+      return;
+    }
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+    didDragRef.current = false;
+    setDraggingNode({
+      node,
+      pointerOffset: { x: pointerPosition.x - node.x, y: pointerPosition.y - node.y },
+    });
+    closeMenu();
+  };
+
+  const handleNodePointerMove = (event: React.PointerEvent<SVGGElement>) => {
+    if (!draggingNode) {
+      return;
+    }
+
+    const pointerPosition = getPointerPosition(event);
+    if (!pointerPosition) {
+      return;
+    }
+
+    const snappedPoint = snapToIsoGrid(
+      pointerPosition.x - draggingNode.pointerOffset.x,
+      pointerPosition.y - draggingNode.pointerOffset.y,
+    );
+    if (snappedPoint.x === draggingNode.node.x && snappedPoint.y === draggingNode.node.y) {
+      return;
+    }
+
+    didDragRef.current = true;
+    const updatedNode = { ...draggingNode.node, ...snappedPoint };
+    setDraggingNode({ ...draggingNode, node: updatedNode });
+    setNodes((previousNodes) =>
+      previousNodes.map((node) => node === draggingNode.node ? updatedNode : node),
+    );
+  };
+
+  const handleNodePointerUp = (event: React.PointerEvent<SVGGElement>) => {
+    event.currentTarget.releasePointerCapture(event.pointerId);
+    setDraggingNode(null);
+  };
+
   const handleSvgClick = (event: React.MouseEvent<SVGSVGElement>) => {
     event.stopPropagation();
+
+    if (didDragRef.current) {
+      didDragRef.current = false;
+      return;
+    }
 
     const rect = event.currentTarget.getBoundingClientRect();
     const localX = event.clientX - rect.left;
@@ -191,7 +260,14 @@ export default function App() {
 
           {/* Nodes */}
           {nodes.map((node, index) => (
-            <g key={index} transform={`translate(${node.x} ${node.y})`}>
+            <g
+              key={index}
+              className="node"
+              transform={`translate(${node.x} ${node.y})`}
+              onPointerDown={(event) => handleNodePointerDown(event, node)}
+              onPointerMove={handleNodePointerMove}
+              onPointerUp={handleNodePointerUp}
+            >
               <ellipse cx="0" cy="0" rx={0.3 * midWidth} ry={0.3 * midHeight} stroke="black" fill="white" />
               <line className="node-label-line" y2={-1.3 * grid.height} />
               <image
