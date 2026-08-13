@@ -16,7 +16,7 @@ section {
   position: relative;
   border: var(--border-size-2) var(--gray-4) solid;
   border-radius: var(--radius-3);
-  background-color: var(--lime-1);
+  background-color: var(--lime-0);
 
   svg {
     width: 100%;
@@ -25,7 +25,7 @@ section {
     path.grid {
       fill: none;
       stroke: var(--gray-6);
-      stroke-width: 1;
+      stroke-width: 0.5;
     }
 
     path.hover {
