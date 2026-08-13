@@ -65,7 +65,9 @@ section {
       stroke-width: 1;
     }
 
-    g.node {
+    path.node-drag-handle {
+      fill: transparent;
+      pointer-events: all;
       cursor: grab;
 
       &:active {
