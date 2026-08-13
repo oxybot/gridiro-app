@@ -230,6 +230,26 @@ export default function App() {
     });
   };
 
+  const handleSvgDoubleClick = (event: React.MouseEvent<SVGSVGElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const snappedPoint = snapToIsoGrid(
+      event.clientX - rect.left - pan.x,
+      event.clientY - rect.top - pan.y,
+    );
+
+    setNodes((previousNodes) => {
+      const hasNode = previousNodes.some((node) => node.x === snappedPoint.x && node.y === snappedPoint.y);
+      if (hasNode) {
+        return previousNodes;
+      }
+
+      return [...previousNodes, { ...snappedPoint, label: "New node", icon: isoflowIcons.icons[0] }];
+    });
+    setHoverPos(snappedPoint);
+    setEditingNode(null);
+    closeMenu();
+  };
+
   const closeMenu = () => {
     setMenu((previous) => ({ ...previous, isOpen: false }));
   };
@@ -281,6 +301,7 @@ export default function App() {
           onMouseLeave={() => setIsHovering(false)}
           onMouseMove={handleMouseMove}
           onContextMenu={handleSvgContextMenu}
+          onDoubleClick={handleSvgDoubleClick}
         >
           {/* Background grid */}
           <defs>
