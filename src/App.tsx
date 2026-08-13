@@ -21,6 +21,11 @@ type DragState = {
   pointerOffset: { x: number; y: number };
 };
 
+type PanState = {
+  pointerPosition: { x: number; y: number };
+  startPosition: { x: number; y: number };
+};
+
 type MenuState = {
   isOpen: boolean;
   x: number;
@@ -63,6 +68,8 @@ export default function App() {
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
   const [draggingNode, setDraggingNode] = useState<DragState | null>(null);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [panning, setPanning] = useState<PanState | null>(null);
   const [menu, setMenu] = useState<MenuState>({
     isOpen: false,
     x: 0,
@@ -93,7 +100,7 @@ export default function App() {
     const localX = event.clientX - rect.left;
     const localY = event.clientY - rect.top;
 
-    setHoverPos(snapToIsoGrid(localX, localY));
+    setHoverPos(snapToIsoGrid(localX - pan.x, localY - pan.y));
   };
 
   const getPointerPosition = (event: React.PointerEvent<SVGElement>) => {
@@ -106,21 +113,66 @@ export default function App() {
     return { x: event.clientX - rect.left, y: event.clientY - rect.top };
   };
 
-  const handleNodePointerDown = (event: React.PointerEvent<SVGPathElement>, node: Node) => {
+  const getGridPosition = (event: React.PointerEvent<SVGElement>) => {
+    const pointerPosition = getPointerPosition(event);
+    if (!pointerPosition) {
+      return null;
+    }
+
+    return { x: pointerPosition.x - pan.x, y: pointerPosition.y - pan.y };
+  };
+
+  const handleGridPointerDown = (event: React.PointerEvent<SVGRectElement>) => {
     if (event.button !== 0) {
       return;
     }
 
-    event.stopPropagation();
     const pointerPosition = getPointerPosition(event);
     if (!pointerPosition) {
       return;
     }
 
     event.currentTarget.setPointerCapture(event.pointerId);
+    setPanning({ pointerPosition, startPosition: pan });
+    closeMenu();
+  };
+
+  const handleGridPointerMove = (event: React.PointerEvent<SVGRectElement>) => {
+    if (!panning) {
+      return;
+    }
+
+    const pointerPosition = getPointerPosition(event);
+    if (!pointerPosition) {
+      return;
+    }
+
+    setPan({
+      x: panning.startPosition.x + pointerPosition.x - panning.pointerPosition.x,
+      y: panning.startPosition.y + pointerPosition.y - panning.pointerPosition.y,
+    });
+  };
+
+  const handleGridPointerUp = (event: React.PointerEvent<SVGRectElement>) => {
+    event.currentTarget.releasePointerCapture(event.pointerId);
+    setPanning(null);
+  };
+
+  const handleNodePointerDown = (event: React.PointerEvent<SVGPathElement>, node: Node) => {
+    if (event.button !== 0) {
+      return;
+    }
+
+    event.stopPropagation();
+    const gridPosition = getGridPosition(event);
+    if (!gridPosition) {
+      return;
+    }
+
+    event.currentTarget.setPointerCapture(event.pointerId);
     setDraggingNode({
       node,
-      pointerOffset: { x: pointerPosition.x - node.x, y: pointerPosition.y - node.y },
+      pointerOffset: { x: gridPosition.x - node.x, y: gridPosition.y - node.y },
     });
     closeMenu();
   };
@@ -130,14 +182,14 @@ export default function App() {
       return;
     }
 
-    const pointerPosition = getPointerPosition(event);
-    if (!pointerPosition) {
+    const gridPosition = getGridPosition(event);
+    if (!gridPosition) {
       return;
     }
 
     const snappedPoint = snapToIsoGrid(
-      pointerPosition.x - draggingNode.pointerOffset.x,
-      pointerPosition.y - draggingNode.pointerOffset.y,
+      gridPosition.x - draggingNode.pointerOffset.x,
+      gridPosition.y - draggingNode.pointerOffset.y,
     );
     if (snappedPoint.x === draggingNode.node.x && snappedPoint.y === draggingNode.node.y) {
       return;
@@ -162,7 +214,7 @@ export default function App() {
     const rect = event.currentTarget.getBoundingClientRect();
     const localX = event.clientX - rect.left;
     const localY = event.clientY - rect.top;
-    const snappedPoint = snapToIsoGrid(localX, localY);
+    const snappedPoint = snapToIsoGrid(localX - pan.x, localY - pan.y);
     const side = snappedPoint.x > 2 * rect.width / 3 ? "right" : "left";
     const node = nodes.find((currentNode) => currentNode.x === snappedPoint.x && currentNode.y === snappedPoint.y);
 
@@ -232,31 +284,40 @@ export default function App() {
         >
           {/* Background grid */}
           <defs>
-            <pattern id="grid" width={grid.width} height={grid.height} patternUnits="userSpaceOnUse">
+            <pattern id="grid" width={grid.width} height={grid.height} patternUnits="userSpaceOnUse" patternTransform={`translate(${pan.x} ${pan.y})`}>
               <path className="grid" d={`M 0 ${midHeight} L ${midWidth} 0 ${grid.width} ${midHeight} ${midWidth} ${grid.height} 0 ${midHeight}`} />
             </pattern>
           </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" />
-
-          {/* Hover indicator */}
-          <path
-            className="hover"
-            d={`M 0 ${midHeight} L ${midWidth} 0 ${grid.width} ${midHeight} ${midWidth} ${grid.height} 0 ${midHeight}`}
-            transform={`translate(${hoverPos.x - midWidth} ${hoverPos.y - midHeight})`}
-            style={{ opacity: isHovering ? 1 : 0 }}
+          <rect
+            className="grid-surface"
+            width="100%"
+            height="100%"
+            fill="url(#grid)"
+            onPointerDown={handleGridPointerDown}
+            onPointerMove={handleGridPointerMove}
+            onPointerUp={handleGridPointerUp}
           />
 
-          {/* Menu selection */}
-          {menu.isOpen && (
+          <g transform={`translate(${pan.x} ${pan.y})`}>
+            {/* Hover indicator */}
             <path
-              className="menu-selection"
+              className="hover"
               d={`M 0 ${midHeight} L ${midWidth} 0 ${grid.width} ${midHeight} ${midWidth} ${grid.height} 0 ${midHeight}`}
-              transform={`translate(${menu.x - midWidth} ${menu.y - midHeight})`}
+              transform={`translate(${hoverPos.x - midWidth} ${hoverPos.y - midHeight})`}
+              style={{ opacity: isHovering ? 1 : 0 }}
             />
-          )}
 
-          {/* Nodes */}
-          {nodes.map((node, index) => (
+            {/* Menu selection */}
+            {menu.isOpen && (
+              <path
+                className="menu-selection"
+                d={`M 0 ${midHeight} L ${midWidth} 0 ${grid.width} ${midHeight} ${midWidth} ${grid.height} 0 ${midHeight}`}
+                transform={`translate(${menu.x - midWidth} ${menu.y - midHeight})`}
+              />
+            )}
+
+            {/* Nodes */}
+            {nodes.map((node, index) => (
             <g
               key={index}
               className="node"
@@ -281,12 +342,13 @@ export default function App() {
                 onPointerUp={handleNodePointerUp}
               />
             </g>
-          ))}
+            ))}
+          </g>
         </svg>
         {menu.isOpen && (
           <div
             className={`diagram-menu ${menu.side}`}
-            style={{ left: menu.x, top: menu.y }}
+            style={{ left: menu.x + pan.x, top: menu.y + pan.y }}
             onClick={(event) => event.stopPropagation()}
           >
             {menu.kind === "empty" ? (

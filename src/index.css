@@ -28,6 +28,14 @@ section {
       stroke-width: 0.5;
     }
 
+    rect.grid-surface {
+      cursor: grab;
+
+      &:active {
+        cursor: grabbing;
+      }
+    }
+
     path.hover {
       fill: var(--blue-6);
       stroke: none;
