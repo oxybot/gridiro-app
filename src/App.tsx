@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { isoflowIcons, type IsoflowIcon } from "./assets/isoflowIcons";
 
 const grid = {
@@ -24,6 +24,34 @@ type MenuState = {
   kind: "empty" | "node";
   node?: Node;
 };
+
+const labelPaddingX = 4;
+const labelPaddingY = 2;
+
+function NodeLabel({ label, y }: { label: string; y: number }) {
+  const textRef = useRef<SVGTextElement>(null);
+  const [box, setBox] = useState({ width: 0, height: 0 });
+
+  useLayoutEffect(() => {
+    if (textRef.current) {
+      const { width, height } = textRef.current.getBBox();
+      setBox({ width, height });
+    }
+  }, [label]);
+
+  return (
+    <>
+      <rect
+        className="node-label-bg"
+        x={-box.width / 2 - labelPaddingX}
+        y={y - box.height / 2 - labelPaddingY}
+        width={box.width + labelPaddingX * 2}
+        height={box.height + labelPaddingY * 2}
+      />
+      <text ref={textRef} className="node-label" x="0" y={y}>{label}</text>
+    </>
+  );
+}
 
 export default function App() {
   const [nodes, setNodes] = useState<Node[]>([]);
@@ -161,11 +189,11 @@ export default function App() {
             />
           )}
 
-
           {/* Nodes */}
           {nodes.map((node, index) => (
             <g key={index} transform={`translate(${node.x} ${node.y})`}>
               <ellipse cx="0" cy="0" rx={0.3 * midWidth} ry={0.3 * midHeight} stroke="black" fill="white" />
+              <line className="node-label-line" y2={-1.3 * grid.height} />
               <image
                 className="node-icon"
                 href={node.icon.url}
@@ -174,7 +202,7 @@ export default function App() {
                 width={grid.width}
                 preserveAspectRatio="xMidYMax meet"
               />
-              <text className="node-label" x="0" y={midHeight * 0.65}>{node.label}</text>
+              <NodeLabel label={node.label} y={-1.3 * grid.height} />
             </g>
           ))}
         </svg>

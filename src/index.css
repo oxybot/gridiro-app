@@ -48,13 +48,21 @@ section {
       dominant-baseline: middle;
     }
 
-    text.node-icon {
-      font-size: 1.25rem;
+    text.node-label {
+      font-size: var(--font-size-1);
+      fill: var(--gray-8);
     }
 
-    text.node-label {
-      font-size: 0.75rem;
-      fill: var(--gray-8);
+    rect.node-label-bg {
+      fill: var(--gray-0);
+      stroke: var(--gray-4);
+      stroke-width: 1;
+      rx: var(--radius-2);
+    }
+
+    line.node-label-line {
+      stroke: var(--gray-12);
+      stroke-width: 1;
     }
   }
 }
