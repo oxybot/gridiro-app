@@ -108,6 +108,10 @@ export default function App() {
   };
 
   const handleNodePointerDown = (event: React.PointerEvent<SVGGElement>, node: Node) => {
+    if (event.button !== 0) {
+      return;
+    }
+
     event.stopPropagation();
     const pointerPosition = getPointerPosition(event);
     if (!pointerPosition) {
@@ -154,13 +158,9 @@ export default function App() {
     setDraggingNode(null);
   };
 
-  const handleSvgClick = (event: React.MouseEvent<SVGSVGElement>) => {
+  const handleSvgContextMenu = (event: React.MouseEvent<SVGSVGElement>) => {
+    event.preventDefault();
     event.stopPropagation();
-
-    if (didDragRef.current) {
-      didDragRef.current = false;
-      return;
-    }
 
     const rect = event.currentTarget.getBoundingClientRect();
     const localX = event.clientX - rect.left;
@@ -231,7 +231,7 @@ export default function App() {
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
           onMouseMove={handleMouseMove}
-          onClick={handleSvgClick}
+          onContextMenu={handleSvgContextMenu}
         >
           {/* Background grid */}
           <defs>
