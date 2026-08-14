@@ -4,5 +4,13 @@
   "image": "ghcr.io/oxybot/node:24",
   "containerEnv": {
     "CHOKIDAR_USEPOLLING": "true"
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "editor.detectIndentation": false,
+        "editor.tabSize": 2
+      }
+    }
   }
 }
