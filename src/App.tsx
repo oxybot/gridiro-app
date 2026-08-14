@@ -1,5 +1,6 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { isoflowIcons, type IsoflowIcon } from "./assets/isoflowIcons";
+import { NodeLabel } from "./components/NodeLabel";
 
 const grid = {
   width: 80,
@@ -46,8 +47,30 @@ type MenuState = {
   node?: Node;
 };
 
-const labelPaddingX = 4;
-const labelPaddingY = 2;
+const diagramStorageKey = "gridiro-diagram";
+
+type StoredDiagram = {
+  nodes: Node[];
+  connections: Connection[];
+};
+
+const loadDiagram = (): StoredDiagram => {
+  try {
+    const storedDiagram = localStorage.getItem(diagramStorageKey);
+    if (!storedDiagram) {
+      return { nodes: [], connections: [] };
+    }
+
+    const diagram = JSON.parse(storedDiagram) as StoredDiagram;
+    if (!Array.isArray(diagram.nodes) || !Array.isArray(diagram.connections)) {
+      return { nodes: [], connections: [] };
+    }
+
+    return diagram;
+  } catch {
+    return { nodes: [], connections: [] };
+  }
+};
 
 const createNode = (x: number, y: number): Node => ({
   id: crypto.randomUUID(),
@@ -57,34 +80,9 @@ const createNode = (x: number, y: number): Node => ({
   icon: isoflowIcons.icons[0],
 });
 
-function NodeLabel({ label, y }: { label: string; y: number }) {
-  const textRef = useRef<SVGTextElement>(null);
-  const [box, setBox] = useState({ width: 0, height: 0 });
-
-  useLayoutEffect(() => {
-    if (textRef.current) {
-      const { width, height } = textRef.current.getBBox();
-      setBox({ width, height });
-    }
-  }, [label]);
-
-  return (
-    <>
-      <rect
-        className="node-label-bg"
-        x={-box.width / 2 - labelPaddingX}
-        y={y - box.height / 2 - labelPaddingY}
-        width={box.width + labelPaddingX * 2}
-        height={box.height + labelPaddingY * 2}
-      />
-      <text ref={textRef} className="node-label" x="0" y={y}>{label}</text>
-    </>
-  );
-}
-
 export default function App() {
-  const [nodes, setNodes] = useState<Node[]>([]);
-  const [connections, setConnections] = useState<Connection[]>([]);
+  const [diagram, setDiagram] = useState<StoredDiagram>(loadDiagram);
+  const { nodes, connections } = diagram;
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
   const [draggingNode, setDraggingNode] = useState<DragState | null>(null);
@@ -99,6 +97,24 @@ export default function App() {
     kind: "empty",
   });
   const [editingNode, setEditingNode] = useState<Node | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem(diagramStorageKey, JSON.stringify(diagram));
+  }, [diagram]);
+
+  const setNodes = (update: Node[] | ((nodes: Node[]) => Node[])) => {
+    setDiagram((previousDiagram) => ({
+      ...previousDiagram,
+      nodes: typeof update === "function" ? update(previousDiagram.nodes) : update,
+    }));
+  };
+
+  const setConnections = (update: Connection[] | ((connections: Connection[]) => Connection[])) => {
+    setDiagram((previousDiagram) => ({
+      ...previousDiagram,
+      connections: typeof update === "function" ? update(previousDiagram.connections) : update,
+    }));
+  };
 
   const snapToIsoGrid = (localX: number, localY: number) => {
     const offsetX = localX - midWidth;
