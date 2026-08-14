@@ -1,30 +1,28 @@
-import type { Dispatch, MouseEvent, SetStateAction } from "react";
+import type { Dispatch, MouseEvent } from "react";
 import { isoflowIcons } from "../assets/isoflowIcons";
-import type { MenuState, Node } from "../diagramTypes";
+import { createNode, type AppAction, type MenuState, type Node } from "../diagramTypes";
 
 type DiagramOverlaysProps = {
   menu: MenuState;
   pan: { x: number; y: number };
   editingNode: Node | null;
-  onAddNode: () => void;
-  onEditNode: () => void;
-  onAddConnection: () => void;
-  onRemoveNode: () => void;
-  onSetEditingNode: Dispatch<SetStateAction<Node | null>>;
-  onUpdateEditingNode: (changes: Partial<Node>) => void;
+  dispatch: Dispatch<AppAction>;
 };
 
 export function DiagramOverlays({
   menu,
   pan,
   editingNode,
-  onAddNode,
-  onEditNode,
-  onAddConnection,
-  onRemoveNode,
-  onSetEditingNode,
-  onUpdateEditingNode,
+  dispatch,
 }: DiagramOverlaysProps) {
+  const closeMenu = () => dispatch({ type: "closeMenu" });
+  const updateEditingNode = (changes: Partial<Node>) => {
+    if (!editingNode) return;
+    const updatedNode = { ...editingNode, ...changes };
+    dispatch({ type: "setEditingNode", editingNode: updatedNode });
+    dispatch({ type: "updateNode", node: updatedNode });
+  };
+
   return (
     <>
       {menu.isOpen && (
@@ -35,15 +33,15 @@ export function DiagramOverlays({
         >
           {menu.kind === "empty" ? (
             <>
-              <button type="button" onClick={onAddNode}>Add node</button>
+              <button type="button" onClick={() => { dispatch({ type: "addNode", node: createNode(menu.x, menu.y) }); closeMenu(); }}>Add node</button>
               <button type="button">Add text</button>
               <button type="button">Add group</button>
             </>
           ) : (
             <>
-              <button type="button" onClick={onEditNode}>Edit node</button>
-              <button type="button" onClick={onAddConnection}>Add connection</button>
-              <button type="button" onClick={onRemoveNode}>Remove node</button>
+              <button type="button" onClick={() => { if (menu.node) dispatch({ type: "setEditingNode", editingNode: menu.node }); closeMenu(); }}>Edit node</button>
+              <button type="button" onClick={() => { if (menu.node) dispatch({ type: "setConnectionDraft", connectionDraft: { sourceId: menu.node.id, pointerPosition: { x: menu.node.x, y: menu.node.y } } }); closeMenu(); }}>Add connection</button>
+              <button type="button" onClick={() => { if (menu.node) dispatch({ type: "removeNode", nodeId: menu.node.id }); closeMenu(); }}>Remove node</button>
             </>
           )}
         </div>
@@ -52,14 +50,14 @@ export function DiagramOverlays({
         <aside className="node-editor" onClick={(event: MouseEvent<HTMLElement>) => event.stopPropagation()}>
           <div className="node-editor-header">
             <h2>Edit node</h2>
-            <button className="close-editor" type="button" onClick={() => onSetEditingNode(null)} aria-label="Close editor">×</button>
+            <button className="close-editor" type="button" onClick={() => dispatch({ type: "setEditingNode", editingNode: null })} aria-label="Close editor">×</button>
           </div>
           <label>
             Label
             <input
               type="text"
               value={editingNode.label}
-              onChange={(event) => onUpdateEditingNode({ label: event.target.value })}
+              onChange={(event) => updateEditingNode({ label: event.target.value })}
             />
           </label>
           <fieldset>
@@ -70,7 +68,7 @@ export function DiagramOverlays({
                   className={editingNode.icon.id === icon.id ? "selected" : ""}
                   type="button"
                   key={icon.id}
-                  onClick={() => onUpdateEditingNode({ icon })}
+                  onClick={() => updateEditingNode({ icon })}
                   aria-label={`Select ${icon.name} icon`}
                 >
                   <img src={icon.url} alt={icon.name} />
