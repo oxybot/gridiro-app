@@ -10,10 +10,21 @@ const midWidth = grid.width / 2;
 const midHeight = grid.height / 2;
 
 type Node = {
+  id: string;
   x: number;
   y: number;
   label: string;
   icon: IsoflowIcon;
+};
+
+type Connection = {
+  sourceId: string;
+  targetId: string;
+};
+
+type ConnectionDraft = {
+  sourceId: string;
+  pointerPosition: { x: number; y: number };
 };
 
 type DragState = {
@@ -37,6 +48,14 @@ type MenuState = {
 
 const labelPaddingX = 4;
 const labelPaddingY = 2;
+
+const createNode = (x: number, y: number): Node => ({
+  id: crypto.randomUUID(),
+  x,
+  y,
+  label: "New node",
+  icon: isoflowIcons.icons[0],
+});
 
 function NodeLabel({ label, y }: { label: string; y: number }) {
   const textRef = useRef<SVGTextElement>(null);
@@ -65,11 +84,13 @@ function NodeLabel({ label, y }: { label: string; y: number }) {
 
 export default function App() {
   const [nodes, setNodes] = useState<Node[]>([]);
+  const [connections, setConnections] = useState<Connection[]>([]);
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
   const [draggingNode, setDraggingNode] = useState<DragState | null>(null);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [panning, setPanning] = useState<PanState | null>(null);
+  const [connectionDraft, setConnectionDraft] = useState<ConnectionDraft | null>(null);
   const [menu, setMenu] = useState<MenuState>({
     isOpen: false,
     x: 0,
@@ -101,6 +122,12 @@ export default function App() {
     const localY = event.clientY - rect.top;
 
     setHoverPos(snapToIsoGrid(localX - pan.x, localY - pan.y));
+    if (connectionDraft) {
+      setConnectionDraft({
+        ...connectionDraft,
+        pointerPosition: { x: localX - pan.x, y: localY - pan.y },
+      });
+    }
   };
 
   const getPointerPosition = (event: React.PointerEvent<SVGElement>) => {
@@ -124,6 +151,11 @@ export default function App() {
 
   const handleGridPointerDown = (event: React.PointerEvent<SVGRectElement>) => {
     if (event.button !== 0) {
+      return;
+    }
+
+    if (connectionDraft) {
+      setConnectionDraft(null);
       return;
     }
 
@@ -164,6 +196,10 @@ export default function App() {
     }
 
     event.stopPropagation();
+    if (connectionDraft) {
+      return;
+    }
+
     const gridPosition = getGridPosition(event);
     if (!gridPosition) {
       return;
@@ -207,6 +243,26 @@ export default function App() {
     setDraggingNode(null);
   };
 
+  const handleNodeClick = (event: React.MouseEvent<SVGPathElement>, node: Node) => {
+    event.stopPropagation();
+    if (!connectionDraft || node.id === connectionDraft.sourceId) {
+      return;
+    }
+
+    setConnections((previousConnections) => {
+      const connectionExists = previousConnections.some((connection) =>
+        (connection.sourceId === connectionDraft.sourceId && connection.targetId === node.id)
+        || (connection.sourceId === node.id && connection.targetId === connectionDraft.sourceId),
+      );
+      if (connectionExists) {
+        return previousConnections;
+      }
+
+      return [...previousConnections, { sourceId: connectionDraft.sourceId, targetId: node.id }];
+    });
+    setConnectionDraft(null);
+  };
+
   const handleSvgContextMenu = (event: React.MouseEvent<SVGSVGElement>) => {
     event.preventDefault();
     event.stopPropagation();
@@ -243,7 +299,7 @@ export default function App() {
         return previousNodes;
       }
 
-      return [...previousNodes, { ...snappedPoint, label: "New node", icon: isoflowIcons.icons[0] }];
+      return [...previousNodes, createNode(snappedPoint.x, snappedPoint.y)];
     });
     setHoverPos(snappedPoint);
     setEditingNode(null);
@@ -255,7 +311,19 @@ export default function App() {
   };
 
   const handleAddNode = () => {
-    setNodes((previousNodes) => [...previousNodes, { x: menu.x, y: menu.y, label: "New node", icon: isoflowIcons.icons[0] }]);
+    setNodes((previousNodes) => [...previousNodes, createNode(menu.x, menu.y)]);
+    closeMenu();
+  };
+
+  const handleAddConnection = () => {
+    if (!menu.node) {
+      return;
+    }
+
+    setConnectionDraft({
+      sourceId: menu.node.id,
+      pointerPosition: { x: menu.node.x, y: menu.node.y },
+    });
     closeMenu();
   };
 
@@ -274,7 +342,7 @@ export default function App() {
     const updatedNode = { ...editingNode, ...changes };
     setEditingNode(updatedNode);
     setNodes((previousNodes) =>
-      previousNodes.map((node) => node.x === editingNode.x && node.y === editingNode.y ? updatedNode : node),
+      previousNodes.map((node) => node.id === editingNode.id ? updatedNode : node),
     );
   };
 
@@ -284,7 +352,10 @@ export default function App() {
     }
 
     setNodes((previousNodes) =>
-      previousNodes.filter((node) => node.x !== menu.node?.x || node.y !== menu.node?.y),
+      previousNodes.filter((node) => node.id !== menu.node?.id),
+    );
+    setConnections((previousConnections) =>
+      previousConnections.filter((connection) => connection.sourceId !== menu.node?.id && connection.targetId !== menu.node?.id),
     );
     closeMenu();
   };
@@ -328,6 +399,25 @@ export default function App() {
               style={{ opacity: isHovering ? 1 : 0 }}
             />
 
+            {/* Connections */}
+            {connections.map((connection) => {
+              const source = nodes.find((node) => node.id === connection.sourceId);
+              const target = nodes.find((node) => node.id === connection.targetId);
+              if (!source || !target) {
+                return null;
+              }
+
+              return <line className="connection" key={`${connection.sourceId}-${connection.targetId}`} x1={source.x} y1={source.y} x2={target.x} y2={target.y} />;
+            })}
+            {connectionDraft && (() => {
+              const source = nodes.find((node) => node.id === connectionDraft.sourceId);
+              if (!source) {
+                return null;
+              }
+
+              return <line className="connection draft" x1={source.x} y1={source.y} x2={connectionDraft.pointerPosition.x} y2={connectionDraft.pointerPosition.y} />;
+            })()}
+
             {/* Menu selection */}
             {menu.isOpen && (
               <path
@@ -338,9 +428,9 @@ export default function App() {
             )}
 
             {/* Nodes */}
-            {nodes.map((node, index) => (
+            {nodes.map((node) => (
             <g
-              key={index}
+              key={node.id}
               className="node"
               transform={`translate(${node.x} ${node.y})`}
             >
@@ -361,6 +451,7 @@ export default function App() {
                 onPointerDown={(event) => handleNodePointerDown(event, node)}
                 onPointerMove={handleNodePointerMove}
                 onPointerUp={handleNodePointerUp}
+                onClick={(event) => handleNodeClick(event, node)}
               />
             </g>
             ))}
@@ -381,6 +472,7 @@ export default function App() {
             ) : (
               <>
                 <button type="button" onClick={handleEditNode}>Edit node</button>
+                <button type="button" onClick={handleAddConnection}>Add connection</button>
                 <button type="button" onClick={handleRemoveNode}>Remove node</button>
               </>
             )}

@@ -46,9 +46,19 @@ section {
 
     path.menu-selection {
       fill: none;
-      stroke: var(--blue-9);
+      stroke: var(--blue-3);
       stroke-width: 2;
       transition: opacity 160ms ease-out;
+    }
+
+    line.connection {
+      stroke: var(--blue-9);
+      stroke-width: 2;
+      pointer-events: none;
+
+      &.draft {
+        stroke-dasharray: 5 4;
+      }
     }
 
     text {
