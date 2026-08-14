@@ -48,6 +48,10 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
     case "addNode":
       return { ...state, nodes: [...state.nodes, action.node] };
     case "moveNode":
+      return {
+        ...state,
+        nodes: state.nodes.map((node) => node.id === action.nodeId ? { ...node, ...action.position } : node),
+      };
     case "updateNode":
       return { ...state, nodes: state.nodes.map((node) => node.id === action.node.id ? action.node : node) };
     case "removeNode":

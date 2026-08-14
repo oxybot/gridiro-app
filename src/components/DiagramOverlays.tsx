@@ -1,10 +1,11 @@
 import type { Dispatch, MouseEvent } from "react";
 import { isoflowIcons } from "../assets/isoflowIcons";
-import { createNode, type AppAction, type MenuState, type Node } from "../diagramTypes";
+import type { AppAction, MenuState, Node, Point } from "../diagramTypes";
+import { createNode } from "../diagramNode";
 
 type DiagramOverlaysProps = {
   menu: MenuState;
-  pan: { x: number; y: number };
+  pan: Point;
   editingNode: Node | null;
   dispatch: Dispatch<AppAction>;
 };

@@ -1,14 +1,15 @@
 import type { Dispatch, MouseEvent, PointerEvent } from "react";
 import { NodeLabel } from "./NodeLabel";
-import { createNode, type AppAction, type Connection, type ConnectionDraft, type DragState, type MenuState, type Node, type PanState } from "../diagramTypes";
+import type { AppAction, Connection, ConnectionDraft, DragState, MenuState, Node, PanState, Point } from "../diagramTypes";
+import { createNode } from "../diagramNode";
 import { grid, midHeight, midWidth, snapToIsoGrid } from "../diagramGeometry";
 
 export type DiagramCanvasProps = {
   nodes: Node[];
   connections: Connection[];
-  hoverPos: { x: number; y: number };
+  hoverPos: Point;
   isHovering: boolean;
-  pan: { x: number; y: number };
+  pan: Point;
   panning: PanState | null;
   draggingNode: DragState | null;
   connectionDraft: ConnectionDraft | null;
@@ -104,7 +105,7 @@ export function DiagramCanvas({
     if (snappedPoint.x === draggingNode.node.x && snappedPoint.y === draggingNode.node.y) return;
     const updatedNode = { ...draggingNode.node, ...snappedPoint };
     dispatch({ type: "setDraggingNode", draggingNode: { ...draggingNode, node: updatedNode } });
-    dispatch({ type: "moveNode", node: updatedNode });
+    dispatch({ type: "moveNode", nodeId: draggingNode.node.id, position: snappedPoint });
   };
 
   const handleNodePointerUp = (event: PointerEvent<SVGPathElement>) => {

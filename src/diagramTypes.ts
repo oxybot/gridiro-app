@@ -1,4 +1,4 @@
-import { isoflowIcons, type IsoflowIcon } from "./assets/isoflowIcons";
+import type { IsoflowIcon } from "./assets/isoflowIcons";
 
 export type Node = {
   id: string;
@@ -13,9 +13,14 @@ export type Connection = {
   targetId: string;
 };
 
+export type Point = {
+  x: number;
+  y: number;
+};
+
 export type ConnectionDraft = {
   sourceId: string;
-  pointerPosition: { x: number; y: number };
+  pointerPosition: Point;
 };
 
 export type MenuState = {
@@ -29,21 +34,21 @@ export type MenuState = {
 
 export type DragState = {
   node: Node;
-  pointerOffset: { x: number; y: number };
+  pointerOffset: Point;
 };
 
 export type PanState = {
-  pointerPosition: { x: number; y: number };
-  startPosition: { x: number; y: number };
+  pointerPosition: Point;
+  startPosition: Point;
 };
 
 export type AppState = {
   nodes: Node[];
   connections: Connection[];
-  hoverPos: { x: number; y: number };
+  hoverPos: Point;
   isHovering: boolean;
   draggingNode: DragState | null;
-  pan: { x: number; y: number };
+  pan: Point;
   panning: PanState | null;
   connectionDraft: ConnectionDraft | null;
   menu: MenuState;
@@ -52,24 +57,17 @@ export type AppState = {
 
 export type AppAction =
   | { type: "addNode"; node: Node }
-  | { type: "moveNode"; node: Node }
+  | { type: "moveNode"; nodeId: string; position: Point }
   | { type: "updateNode"; node: Node }
   | { type: "removeNode"; nodeId: string }
   | { type: "addConnection"; connection: Connection }
-  | { type: "setHoverPos"; position: { x: number; y: number } }
+  | { type: "setHoverPos"; position: Point }
   | { type: "setHovering"; isHovering: boolean }
   | { type: "setDraggingNode"; draggingNode: DragState | null }
-  | { type: "setPan"; pan: { x: number; y: number } }
+  | { type: "setPan"; pan: Point }
   | { type: "setPanning"; panning: PanState | null }
   | { type: "setConnectionDraft"; connectionDraft: ConnectionDraft | null }
   | { type: "setMenu"; menu: MenuState }
   | { type: "closeMenu" }
   | { type: "setEditingNode"; editingNode: Node | null };
 
-export const createNode = (x: number, y: number): Node => ({
-  id: crypto.randomUUID(),
-  x,
-  y,
-  label: "New node",
-  icon: isoflowIcons.icons[0],
-});
