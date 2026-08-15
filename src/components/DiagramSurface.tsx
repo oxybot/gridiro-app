@@ -42,6 +42,7 @@ export function DiagramSurface({
       {surface.squared ? (
         <path
           className="surface"
+          style={{ fill: surface.backgroundColor }}
           d={`M ${left.x} ${left.y} L ${top.x} ${top.y}, ${right.x} ${right.y}, ${bottom.x} ${bottom.y} Z`}
           onPointerDown={onBodyPointerDown}
           onPointerMove={onBodyPointerMove}
@@ -51,6 +52,7 @@ export function DiagramSurface({
       ) : (
         <path
           className="surface"
+          style={{ fill: surface.backgroundColor }}
           d={`M ${left.x + midWidth / 2} ${left.y + midHeight / 2} l 0 ${-midHeight}
             L ${top.x - midWidth / 2} ${top.y + midHeight / 2} l ${midWidth} 0
             L ${right.x - midWidth / 2} ${right.y - midHeight / 2} l 0 ${midHeight}

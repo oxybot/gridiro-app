@@ -1,6 +1,6 @@
 import type { Dispatch, MouseEvent } from "react";
 import { isoflowIcons } from "../assets/isoflowIcons";
-import type { AppAction, EditingElement, MenuState, Node, Point, TextElement, TextOrientation, TextSize } from "../diagramTypes";
+import type { AppAction, EditingElement, MenuState, Node, Point, Surface, SurfaceColor, TextElement, TextOrientation, TextSize } from "../diagramTypes";
 import { createNode } from "../diagramNode";
 import { createText } from "../diagramText";
 import { createSurface } from "../diagramSurface";
@@ -21,6 +21,7 @@ export function DiagramOverlays({
   const closeMenu = () => dispatch({ type: "closeMenu" });
   const editingNode = editing?.kind === "node" ? editing.node : null;
   const editingText = editing?.kind === "text" ? editing.text : null;
+  const editingSurface = editing?.kind === "surface" ? editing.surface : null;
   const updateEditingNode = (changes: Partial<Node>) => {
     if (!editingNode) return;
     dispatch({ type: "setEditing", editing: { kind: "node", node: { ...editingNode, ...changes } } });
@@ -30,6 +31,11 @@ export function DiagramOverlays({
     if (!editingText) return;
     dispatch({ type: "setEditing", editing: { kind: "text", text: { ...editingText, ...changes } } });
     dispatch({ type: "updateText", textId: editingText.id, changes });
+  };
+  const updateEditingSurface = (changes: Partial<Surface>) => {
+    if (!editingSurface) return;
+    dispatch({ type: "setEditing", editing: { kind: "surface", surface: { ...editingSurface, ...changes } } });
+    dispatch({ type: "updateSurface", surfaceId: editingSurface.id, changes });
   };
 
   return (
@@ -44,7 +50,7 @@ export function DiagramOverlays({
             <>
               <button type="button" onClick={() => { dispatch({ type: "addNode", node: createNode(menu.x, menu.y) }); closeMenu(); }}>Add node</button>
               <button type="button" onClick={() => { dispatch({ type: "addText", text: createText(menu.x, menu.y) }); closeMenu(); }}>Add text</button>
-              <button type="button" onClick={() => { dispatch({ type: "addSurface", surface: createSurface(menu.x, menu.y) }); closeMenu(); }}>Add group</button>
+              <button type="button" onClick={() => { dispatch({ type: "addSurface", surface: createSurface(menu.x, menu.y) }); closeMenu(); }}>Add surface</button>
             </>
           ) : menu.kind === "node" ? (
             <>
@@ -59,7 +65,8 @@ export function DiagramOverlays({
             </>
           ) : (
             <>
-              <button type="button" onClick={() => { if (menu.surface) dispatch({ type: "removeSurface", surfaceId: menu.surface.id }); closeMenu(); }}>Remove group</button>
+              <button type="button" onClick={() => { if (menu.surface) dispatch({ type: "setEditing", editing: { kind: "surface", surface: menu.surface } }); closeMenu(); }}>Edit surface</button>
+              <button type="button" onClick={() => { if (menu.surface) dispatch({ type: "removeSurface", surfaceId: menu.surface.id }); closeMenu(); }}>Remove surface</button>
             </>
           )}
         </div>
@@ -137,6 +144,31 @@ export function DiagramOverlays({
                 {size}
               </label>
             ))}
+          </fieldset>
+        </aside>
+      )}
+      {editingSurface && (
+        <aside className="node-editor" onClick={(event: MouseEvent<HTMLElement>) => event.stopPropagation()}>
+          <div className="node-editor-header">
+            <h2>Edit surface</h2>
+            <button className="close-editor" type="button" onClick={() => dispatch({ type: "setEditing", editing: null })} aria-label="Close editor">×</button>
+          </div>
+          <fieldset>
+            <legend>Background color</legend>
+            <div className="surface-color-options">
+              {(["gray", "blue", "green", "yellow", "red"] as SurfaceColor[]).map((color) => (
+                <button
+                  className={editingSurface.backgroundColor === color ? "selected" : ""}
+                  type="button"
+                  key={color}
+                  onClick={() => updateEditingSurface({ backgroundColor: color })}
+                  style={{ backgroundColor: color }}
+                  aria-label={`Select ${color} background`}
+                >
+                  {color}
+                </button>
+              ))}
+            </div>
           </fieldset>
         </aside>
       )}

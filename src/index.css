@@ -247,6 +247,25 @@ section {
         background-color: var(--blue-1);
       }
     }
+
+    .surface-color-options {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: var(--size-1);
+
+      button {
+        aspect-ratio: 1;
+        border: var(--border-size-1) var(--gray-4) solid;
+        border-radius: var(--radius-1);
+        cursor: pointer;
+
+        &:hover,
+        &.selected {
+          border-color: var(--blue-6);
+          outline: var(--border-size-2) solid var(--blue-2);
+        }
+      }
+    }
   }
 
   .radio-option {

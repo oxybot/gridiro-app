@@ -9,5 +9,6 @@ export const createSurface = (cellX: number, cellY: number): Surface => {
     x2: cellX + grid.width,
     y2: cellY,
     squared: false,
+    backgroundColor: "gray",
   };
 };

@@ -32,7 +32,10 @@ export type Surface = {
   x2: number;
   y2: number;
   squared: boolean;
+  backgroundColor: SurfaceColor;
 };
+
+export type SurfaceColor = "gray" | "blue" | "green" | "yellow" | "red";
 
 export type Point = {
   x: number;
@@ -76,7 +79,8 @@ export type PanState = {
 
 export type EditingElement =
   | { kind: "node"; node: Node }
-  | { kind: "text"; text: TextElement };
+  | { kind: "text"; text: TextElement }
+  | { kind: "surface"; surface: Surface };
 
 export type AppState = {
   nodes: Node[];
