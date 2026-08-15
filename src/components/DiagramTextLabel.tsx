@@ -8,13 +8,14 @@ const textPaddingY = 4;
 
 type DiagramTextLabelProps = {
   text: TextElement;
+  selected: boolean;
   onPointerDown: (event: PointerEvent<SVGRectElement>) => void;
   onPointerMove: (event: PointerEvent<SVGRectElement>) => void;
   onPointerUp: (event: PointerEvent<SVGRectElement>) => void;
   onContextMenu: (event: MouseEvent<SVGRectElement>) => void;
 };
 
-export function DiagramTextLabel({ text, onPointerDown, onPointerMove, onPointerUp, onContextMenu }: DiagramTextLabelProps) {
+export function DiagramTextLabel({ text, selected, onPointerDown, onPointerMove, onPointerUp, onContextMenu }: DiagramTextLabelProps) {
   const textRef = useRef<SVGTextElement>(null);
   const [box, setBox] = useState({ width: 0, height: 0 });
 
@@ -39,6 +40,14 @@ export function DiagramTextLabel({ text, onPointerDown, onPointerMove, onPointer
         x="0" y="0">
         {text.content}
       </text>
+      <rect
+        className="menu-selection"
+        x={-box.width / 2 - textPaddingX}
+        y={-box.height / 2 - textPaddingY}
+        width={box.width + textPaddingX * 2}
+        height={box.height + textPaddingY * 2}
+        style={{ opacity: selected ? 1 : 0 }}
+      />
       <rect
         className="drag-handle"
         x={-box.width / 2 - textPaddingX}

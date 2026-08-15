@@ -264,7 +264,7 @@ export function DiagramCanvas({
           );
         })()}
 
-        {menu.isOpen && (
+        {menu.isOpen && menu.kind !== "text" && (
           <path
             className="menu-selection"
             d={`M 0 ${midHeight} L ${midWidth} 0 ${grid.width} ${midHeight} ${midWidth} ${grid.height} 0 ${midHeight}`}
@@ -300,6 +300,7 @@ export function DiagramCanvas({
           <g key={text.id} className="text-element" transform={`translate(${text.x} ${text.y})`}>
             <DiagramTextLabel
               text={text}
+              selected={menu.isOpen && menu.kind === "text" && menu.text?.id === text.id}
               onPointerDown={(event) => handleElementPointerDown(event, "text", text)}
               onPointerMove={handleElementPointerMove}
               onPointerUp={handleElementPointerUp}

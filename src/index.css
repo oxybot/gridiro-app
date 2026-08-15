@@ -44,10 +44,11 @@ section {
       transition: opacity 160ms ease-out;
     }
 
-    path.menu-selection {
+    .menu-selection {
       fill: none;
       stroke: var(--blue-3);
       stroke-width: 2;
+      pointer-events: none;
       transition: opacity 160ms ease-out;
     }
 
