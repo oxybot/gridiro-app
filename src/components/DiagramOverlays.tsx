@@ -3,6 +3,7 @@ import { isoflowIcons } from "../assets/isoflowIcons";
 import type { AppAction, EditingElement, MenuState, Node, Point, TextElement, TextOrientation, TextSize } from "../diagramTypes";
 import { createNode } from "../diagramNode";
 import { createText } from "../diagramText";
+import { createSurface } from "../diagramSurface";
 
 type DiagramOverlaysProps = {
   menu: MenuState;
@@ -43,7 +44,7 @@ export function DiagramOverlays({
             <>
               <button type="button" onClick={() => { dispatch({ type: "addNode", node: createNode(menu.x, menu.y) }); closeMenu(); }}>Add node</button>
               <button type="button" onClick={() => { dispatch({ type: "addText", text: createText(menu.x, menu.y) }); closeMenu(); }}>Add text</button>
-              <button type="button">Add group</button>
+              <button type="button" onClick={() => { dispatch({ type: "addSurface", surface: createSurface(menu.x, menu.y) }); closeMenu(); }}>Add group</button>
             </>
           ) : menu.kind === "node" ? (
             <>
@@ -51,10 +52,14 @@ export function DiagramOverlays({
               <button type="button" onClick={() => { if (menu.node) dispatch({ type: "setConnectionDraft", connectionDraft: { sourceId: menu.node.id, pointerPosition: { x: menu.node.x, y: menu.node.y } } }); closeMenu(); }}>Add connection</button>
               <button type="button" onClick={() => { if (menu.node) dispatch({ type: "removeNode", nodeId: menu.node.id }); closeMenu(); }}>Remove node</button>
             </>
-          ) : (
+          ) : menu.kind === "text" ? (
             <>
               <button type="button" onClick={() => { if (menu.text) dispatch({ type: "setEditing", editing: { kind: "text", text: menu.text } }); closeMenu(); }}>Edit text</button>
               <button type="button" onClick={() => { if (menu.text) dispatch({ type: "removeText", textId: menu.text.id }); closeMenu(); }}>Remove text</button>
+            </>
+          ) : (
+            <>
+              <button type="button" onClick={() => { if (menu.surface) dispatch({ type: "removeSurface", surfaceId: menu.surface.id }); closeMenu(); }}>Remove group</button>
             </>
           )}
         </div>

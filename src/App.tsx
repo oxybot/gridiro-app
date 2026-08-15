@@ -5,9 +5,9 @@ import type { AppAction, AppState } from "./diagramTypes";
 
 const diagramStorageKey = "gridiro-diagram";
 
-type StoredDiagram = Pick<AppState, "nodes" | "connections" | "texts">;
+type StoredDiagram = Pick<AppState, "nodes" | "connections" | "texts" | "surfaces">;
 
-const emptyDiagram: StoredDiagram = { nodes: [], connections: [], texts: [] };
+const emptyDiagram: StoredDiagram = { nodes: [], connections: [], texts: [], surfaces: [] };
 
 const loadDiagram = (): StoredDiagram => {
   try {
@@ -17,7 +17,7 @@ const loadDiagram = (): StoredDiagram => {
     }
 
     const diagram = JSON.parse(storedDiagram) as StoredDiagram;
-    if (!Array.isArray(diagram.nodes) || !Array.isArray(diagram.connections) || !Array.isArray(diagram.texts)) {
+    if (!Array.isArray(diagram.nodes) || !Array.isArray(diagram.connections) || !Array.isArray(diagram.texts) || !Array.isArray(diagram.surfaces)) {
       return emptyDiagram;
     }
 
@@ -32,6 +32,8 @@ const createInitialState = (): AppState => ({
   hoverPos: { x: 0, y: 0 },
   isHovering: false,
   dragging: null,
+  resizingSurface: null,
+  selectedSurfaceId: null,
   pan: { x: 0, y: 0 },
   panning: null,
   connectionDraft: null,
@@ -73,6 +75,26 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       return { ...state, texts: state.texts.map((text) => text.id === action.textId ? { ...text, ...action.changes } : text) };
     case "removeText":
       return { ...state, texts: state.texts.filter((text) => text.id !== action.textId) };
+    case "addSurface":
+      return { ...state, surfaces: [...state.surfaces, action.surface] };
+    case "updateSurface":
+      return { ...state, surfaces: state.surfaces.map((surface) => surface.id === action.surfaceId ? { ...surface, ...action.changes } : surface) };
+    case "moveSurface":
+      return {
+        ...state,
+        surfaces: state.surfaces.map((surface) => surface.id === action.surfaceId ? { ...surface, ...action.position } : surface),
+      };
+    case "resizeSurface":
+      return {
+        ...state,
+        surfaces: state.surfaces.map((surface) => surface.id === action.surfaceId ? { ...surface, ...action.size } : surface),
+      };
+    case "removeSurface":
+      return { ...state, surfaces: state.surfaces.filter((surface) => surface.id !== action.surfaceId) };
+    case "setSelectedSurface":
+      return { ...state, selectedSurfaceId: action.surfaceId };
+    case "setResizingSurface":
+      return { ...state, resizingSurface: action.resizingSurface };
     case "addConnection":
       return { ...state, connections: [...state.connections, action.connection] };
     case "setHoverPos":
@@ -98,11 +120,11 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
 
 export default function App() {
   const [state, dispatch] = useReducer(appReducer, undefined, createInitialState);
-  const { nodes, connections, texts } = state;
+  const { nodes, connections, texts, surfaces } = state;
 
   useEffect(() => {
-    localStorage.setItem(diagramStorageKey, JSON.stringify({ nodes, connections, texts }));
-  }, [nodes, connections, texts]);
+    localStorage.setItem(diagramStorageKey, JSON.stringify({ nodes, connections, texts, surfaces }));
+  }, [nodes, connections, texts, surfaces]);
 
   return (
     <>
@@ -114,11 +136,14 @@ export default function App() {
           nodes={state.nodes}
           connections={state.connections}
           texts={state.texts}
+          surfaces={state.surfaces}
           hoverPos={state.hoverPos}
           isHovering={state.isHovering}
           pan={state.pan}
           panning={state.panning}
           dragging={state.dragging}
+          resizingSurface={state.resizingSurface}
+          selectedSurfaceId={state.selectedSurfaceId}
           connectionDraft={state.connectionDraft}
           menu={state.menu}
           editing={state.editing}

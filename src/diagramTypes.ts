@@ -25,6 +25,15 @@ export type Connection = {
   targetId: string;
 };
 
+export type Surface = {
+  id: string;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  squared: boolean;
+};
+
 export type Point = {
   x: number;
   y: number;
@@ -40,16 +49,24 @@ export type MenuState = {
   x: number;
   y: number;
   side: "left" | "right";
-  kind: "empty" | "node" | "text";
+  kind: "empty" | "node" | "text" | "surface";
   node?: Node;
   text?: TextElement;
+  surface?: Surface;
 };
 
-// A dragged element is looked up by id from the nodes/texts arrays, so only its kind, id and pointer offset need tracking.
+// A dragged element is looked up by id from the nodes/texts/surfaces arrays, so only its kind, id and pointer offset need tracking.
 export type DraggingElement = {
-  kind: "node" | "text";
+  kind: "node" | "text" | "surface";
   id: string;
   pointerOffset: Point;
+};
+
+export type SurfaceCorner = "top" | "left" | "right" | "bottom";
+
+export type ResizingSurface = {
+  surfaceId: string;
+  corner: SurfaceCorner;
 };
 
 export type PanState = {
@@ -65,9 +82,12 @@ export type AppState = {
   nodes: Node[];
   connections: Connection[];
   texts: TextElement[];
+  surfaces: Surface[];
   hoverPos: Point;
   isHovering: boolean;
   dragging: DraggingElement | null;
+  resizingSurface: ResizingSurface | null;
+  selectedSurfaceId: string | null;
   pan: Point;
   panning: PanState | null;
   connectionDraft: ConnectionDraft | null;
@@ -84,6 +104,13 @@ export type AppAction =
   | { type: "moveText"; textId: string; position: Point }
   | { type: "updateText"; textId: string; changes: Partial<TextElement> }
   | { type: "removeText"; textId: string }
+  | { type: "addSurface"; surface: Surface }
+  | { type: "updateSurface"; surfaceId: string; changes: Partial<Surface> }
+  | { type: "moveSurface"; surfaceId: string; position: Point }
+  | { type: "resizeSurface"; surfaceId: string; size: { width: number; height: number } }
+  | { type: "removeSurface"; surfaceId: string }
+  | { type: "setSelectedSurface"; surfaceId: string | null }
+  | { type: "setResizingSurface"; resizingSurface: ResizingSurface | null }
   | { type: "addConnection"; connection: Connection }
   | { type: "setHoverPos"; position: Point }
   | { type: "setHovering"; isHovering: boolean }

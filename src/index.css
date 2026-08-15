@@ -108,6 +108,34 @@ section {
       stroke-width: 1;
     }
 
+    path.surface {
+      fill: var(--gray-0);
+      stroke: var(--gray-9);
+      stroke-width: 1;
+      pointer-events: all;
+      cursor: grab;
+
+      &:active {
+        cursor: grabbing;
+      }
+    }
+
+    rect.surface-handle-move {
+      fill: var(--gray-0);
+      stroke: var(--blue-6);
+      stroke-width: 1.5;
+      pointer-events: all;
+      cursor: move;
+    }
+
+    rect.surface-handle-resize {
+      fill: var(--gray-0);
+      stroke: var(--blue-6);
+      stroke-width: 1.5;
+      pointer-events: all;
+      cursor: nwse-resize;
+    }
+
     .drag-handle {
       fill: transparent;
       pointer-events: all;

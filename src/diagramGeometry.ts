@@ -1,3 +1,5 @@
+import type { Point } from "./diagramTypes";
+
 export const grid = {
   width: 80,
   height: 50,
@@ -6,9 +8,9 @@ export const grid = {
 export const midWidth = grid.width / 2;
 export const midHeight = grid.height / 2;
 
-export const snapToIsoGrid = (localX: number, localY: number) => {
-  const offsetX = localX - midWidth;
-  const offsetY = localY - midHeight;
+export const snapToIsoGrid = (local: Point): Point => {
+  const offsetX = local.x - midWidth;
+  const offsetY = local.y - midHeight;
 
   const isoU = (offsetX / midWidth + offsetY / midHeight) / 2;
   const isoV = (offsetX / midWidth - offsetY / midHeight) / 2;
@@ -21,3 +23,9 @@ export const snapToIsoGrid = (localX: number, localY: number) => {
     y: (snappedU - snappedV) * midHeight + midHeight,
   };
 };
+
+// Inverts the bottom corner's formula to recover width/height from a local point.
+export const surfaceExtentsFromPoint = (localX: number, localY: number) => ({
+  width: (localX / midWidth + localY / midHeight) / 2,
+  height: (localX / midWidth - localY / midHeight) / 2,
+});

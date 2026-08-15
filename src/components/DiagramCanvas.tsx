@@ -1,7 +1,8 @@
 import type { Dispatch, MouseEvent, PointerEvent } from "react";
 import { NodeLabel } from "./NodeLabel";
 import { DiagramTextLabel } from "./DiagramTextLabel";
-import type { AppAction, Connection, ConnectionDraft, DraggingElement, EditingElement, MenuState, Node, PanState, Point, TextElement } from "../diagramTypes";
+import { DiagramSurface } from "./DiagramSurface";
+import type { AppAction, Connection, ConnectionDraft, DraggingElement, EditingElement, MenuState, Node, PanState, Point, ResizingSurface, Surface, SurfaceCorner, TextElement } from "../diagramTypes";
 import { createNode } from "../diagramNode";
 import { grid, midHeight, midWidth, snapToIsoGrid } from "../diagramGeometry";
 
@@ -9,11 +10,14 @@ export type DiagramCanvasProps = {
   nodes: Node[];
   connections: Connection[];
   texts: TextElement[];
+  surfaces: Surface[];
   hoverPos: Point;
   isHovering: boolean;
   pan: Point;
   panning: PanState | null;
   dragging: DraggingElement | null;
+  resizingSurface: ResizingSurface | null;
+  selectedSurfaceId: string | null;
   connectionDraft: ConnectionDraft | null;
   menu: MenuState;
   editing: EditingElement | null;
@@ -24,11 +28,14 @@ export function DiagramCanvas({
   nodes,
   connections,
   texts,
+  surfaces,
   hoverPos,
   isHovering,
   pan,
   panning,
   dragging,
+  resizingSurface,
+  selectedSurfaceId,
   connectionDraft,
   menu,
   editing,
@@ -52,7 +59,7 @@ export function DiagramCanvas({
   const handleMouseMove = (event: MouseEvent<SVGSVGElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const position = { x: event.clientX - rect.left - pan.x, y: event.clientY - rect.top - pan.y };
-    dispatch({ type: "setHoverPos", position: snapToIsoGrid(position.x, position.y) });
+    dispatch({ type: "setHoverPos", position: snapToIsoGrid(position) });
     if (connectionDraft) {
       dispatch({ type: "setConnectionDraft", connectionDraft: { ...connectionDraft, pointerPosition: position } });
     }
@@ -70,6 +77,7 @@ export function DiagramCanvas({
     if (!pointerPosition) return;
     event.currentTarget.setPointerCapture(event.pointerId);
     dispatch({ type: "setPanning", panning: { pointerPosition, startPosition: pan } });
+    dispatch({ type: "setSelectedSurface", surfaceId: null });
     closeMenu();
   };
 
@@ -90,14 +98,18 @@ export function DiagramCanvas({
     dispatch({ type: "setPanning", panning: null });
   };
 
-  const handleElementPointerDown = (event: PointerEvent<SVGGraphicsElement>, kind: "node" | "text", element: Point & { id: string }) => {
+  const handleElementPointerDown = (event: PointerEvent<SVGGraphicsElement>, kind: "node" | "text" | "surface", element: Node | TextElement | Surface) => {
     if (event.button !== 0) return;
     event.stopPropagation();
     if (connectionDraft) return;
     const gridPosition = getGridPosition(event);
     if (!gridPosition) return;
+    const origin = kind === "surface"
+      ? { x: (element as Surface).x1, y: (element as Surface).y1 }
+      : { x: (element as Node | TextElement).x, y: (element as Node | TextElement).y };
     event.currentTarget.setPointerCapture(event.pointerId);
-    dispatch({ type: "setDragging", dragging: { kind, id: element.id, pointerOffset: { x: gridPosition.x - element.x, y: gridPosition.y - element.y } } });
+    dispatch({ type: "setDragging", dragging: { kind, id: element.id, pointerOffset: { x: gridPosition.x - origin.x, y: gridPosition.y - origin.y } } });
+    dispatch({ type: "setSelectedSurface", surfaceId: kind === "surface" ? element.id : null });
     closeMenu();
   };
 
@@ -105,24 +117,61 @@ export function DiagramCanvas({
     if (!dragging) return;
     const gridPosition = getGridPosition(event);
     if (!gridPosition) return;
-    const snappedPoint = snapToIsoGrid(
-      gridPosition.x - dragging.pointerOffset.x,
-      gridPosition.y - dragging.pointerOffset.y,
-    );
+    const snappedPoint = snapToIsoGrid({
+      x: gridPosition.x - dragging.pointerOffset.x,
+      y: gridPosition.y - dragging.pointerOffset.y,
+    });
     if (dragging.kind === "node") {
       const node = nodes.find((currentNode) => currentNode.id === dragging.id);
       if (node && node.x === snappedPoint.x && node.y === snappedPoint.y) return;
       dispatch({ type: "moveNode", nodeId: dragging.id, position: snappedPoint });
-    } else {
+    } else if (dragging.kind === "text") {
       const text = texts.find((currentText) => currentText.id === dragging.id);
       if (text && text.x === snappedPoint.x && text.y === snappedPoint.y) return;
       dispatch({ type: "moveText", textId: dragging.id, position: snappedPoint });
+    } else {
+      const surface = surfaces.find((currentSurface) => currentSurface.id === dragging.id);
+      if (surface && surface.x1 === snappedPoint.x && surface.y1 === snappedPoint.y) return;
+      dispatch({ type: "moveSurface", surfaceId: dragging.id, position: snappedPoint });
     }
   };
 
   const handleElementPointerUp = (event: PointerEvent<SVGGraphicsElement>) => {
     event.currentTarget.releasePointerCapture(event.pointerId);
     dispatch({ type: "setDragging", dragging: null });
+  };
+
+  const handleSurfaceCornerPointerMove = (event: PointerEvent<SVGRectElement>) => {
+    if (!resizingSurface) return;
+
+    const gridPosition = getGridPosition(event)
+    const surface = surfaces.find((currentSurface) => currentSurface.id === resizingSurface.surfaceId);
+    if (!gridPosition || !surface) return;
+    const local = snapToIsoGrid(gridPosition);
+  
+    switch (resizingSurface.corner) {
+      case "left":
+        dispatch({ type: "updateSurface", surfaceId: surface.id, changes: { x1: local.x, y1: local.y } });
+        break;
+      case "right":
+        dispatch({ type: "updateSurface", surfaceId: surface.id, changes: { x2: local.x, y2: local.y } });
+        break;
+      case "top":
+      case "bottom":
+        break;
+    }
+  };
+
+  const handleSurfaceCornerPointerDown = (event: PointerEvent<SVGRectElement>, surface: Surface, corner: SurfaceCorner) => {
+    if (event.button !== 0) return;
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dispatch({ type: "setResizingSurface", resizingSurface: { surfaceId: surface.id, corner } });
+  };
+
+  const handleSurfaceCornerPointerUp = (event: PointerEvent<SVGRectElement>) => {
+    event.currentTarget.releasePointerCapture(event.pointerId);
+    dispatch({ type: "setResizingSurface", resizingSurface: null });
   };
 
   const handleNodeClick = (event: MouseEvent<SVGPathElement>, node: Node) => {
@@ -161,7 +210,10 @@ export function DiagramCanvas({
     event.preventDefault();
     event.stopPropagation();
     const rect = event.currentTarget.getBoundingClientRect();
-    const snappedPoint = snapToIsoGrid(event.clientX - rect.left - pan.x, event.clientY - rect.top - pan.y);
+    const snappedPoint = snapToIsoGrid({
+      x: event.clientX - rect.left - pan.x,
+      y: event.clientY - rect.top - pan.y,
+    });
     const node = nodes.find((currentNode) => currentNode.x === snappedPoint.x && currentNode.y === snappedPoint.y);
     const text = !node ? texts.find((currentText) => currentText.x === snappedPoint.x && currentText.y === snappedPoint.y) : undefined;
     dispatch({ type: "setHoverPos", position: snappedPoint });
@@ -179,9 +231,33 @@ export function DiagramCanvas({
     });
   };
 
+  // Right-clicking anywhere on a surface's top face opens its own menu instead of the empty-cell menu.
+  const handleSurfaceContextMenu = (event: MouseEvent<SVGPathElement>, surface: Surface) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const rect = event.currentTarget.ownerSVGElement?.getBoundingClientRect();
+    const localX = event.clientX - (rect?.left ?? 0) - pan.x;
+    const localY = event.clientY - (rect?.top ?? 0) - pan.y;
+    dispatch({ type: "setEditing", editing: null });
+    dispatch({ type: "setSelectedSurface", surfaceId: surface.id });
+    dispatch({
+      type: "setMenu", menu: {
+        isOpen: true,
+        x: localX,
+        y: localY,
+        side: rect && localX > 2 * rect.width / 3 ? "right" : "left",
+        kind: "surface",
+        surface,
+      }
+    });
+  };
+
   const handleDoubleClick = (event: MouseEvent<SVGSVGElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
-    const snappedPoint = snapToIsoGrid(event.clientX - rect.left - pan.x, event.clientY - rect.top - pan.y);
+    const snappedPoint = snapToIsoGrid({
+      x: event.clientX - rect.left - pan.x,
+      y: event.clientY - rect.top - pan.y,
+    });
     const hasElement = nodes.some((node) => node.x === snappedPoint.x && node.y === snappedPoint.y)
       || texts.some((text) => text.x === snappedPoint.x && text.y === snappedPoint.y);
     if (!hasElement) {
@@ -229,6 +305,22 @@ export function DiagramCanvas({
           transform={`translate(${hoverPos.x - midWidth} ${hoverPos.y - midHeight})`}
           style={{ opacity: isHovering && !dragging ? 1 : 0 }}
         />
+
+        {surfaces.map((surface) => (
+          <g key={surface.id}>
+            <DiagramSurface
+              surface={surface}
+              selected={selectedSurfaceId === surface.id}
+              onBodyPointerDown={(event) => handleElementPointerDown(event, "surface", surface)}
+              onBodyPointerMove={handleElementPointerMove}
+              onBodyPointerUp={handleElementPointerUp}
+              onContextMenu={(event) => handleSurfaceContextMenu(event, surface)}
+              onCornerPointerDown={(event, corner) => handleSurfaceCornerPointerDown(event, surface, corner)}
+              onCornerPointerMove={handleSurfaceCornerPointerMove}
+              onCornerPointerUp={handleSurfaceCornerPointerUp}
+            />
+          </g>
+        ))}
 
         {connections.map((connection) => {
           const source = nodes.find((node) => node.id === connection.sourceId);
