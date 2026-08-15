@@ -75,11 +75,11 @@ export type AppState = {
 export type AppAction =
   | { type: "addNode"; node: Node }
   | { type: "moveNode"; nodeId: string; position: Point }
-  | { type: "updateNode"; node: Node }
+  | { type: "updateNode"; nodeId: string; changes: Partial<Node> }
   | { type: "removeNode"; nodeId: string }
   | { type: "addText"; text: TextElement }
   | { type: "moveText"; textId: string; position: Point }
-  | { type: "updateText"; text: TextElement }
+  | { type: "updateText"; textId: string; changes: Partial<TextElement> }
   | { type: "removeText"; textId: string }
   | { type: "addConnection"; connection: Connection }
   | { type: "setHoverPos"; position: Point }

@@ -56,7 +56,7 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
         nodes: state.nodes.map((node) => node.id === action.nodeId ? { ...node, ...action.position } : node),
       };
     case "updateNode":
-      return { ...state, nodes: state.nodes.map((node) => node.id === action.node.id ? action.node : node) };
+      return { ...state, nodes: state.nodes.map((node) => node.id === action.nodeId ? { ...node, ...action.changes } : node) };
     case "removeNode":
       return {
         ...state,
@@ -71,7 +71,7 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
         texts: state.texts.map((text) => text.id === action.textId ? { ...text, ...action.position } : text),
       };
     case "updateText":
-      return { ...state, texts: state.texts.map((text) => text.id === action.text.id ? action.text : text) };
+      return { ...state, texts: state.texts.map((text) => text.id === action.textId ? { ...text, ...action.changes } : text) };
     case "removeText":
       return { ...state, texts: state.texts.filter((text) => text.id !== action.textId) };
     case "addConnection":

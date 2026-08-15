@@ -22,15 +22,13 @@ export function DiagramOverlays({
   const closeMenu = () => dispatch({ type: "closeMenu" });
   const updateEditingNode = (changes: Partial<Node>) => {
     if (!editingNode) return;
-    const updatedNode = { ...editingNode, ...changes };
-    dispatch({ type: "setEditingNode", editingNode: updatedNode });
-    dispatch({ type: "updateNode", node: updatedNode });
+    dispatch({ type: "setEditingNode", editingNode: { ...editingNode, ...changes } });
+    dispatch({ type: "updateNode", nodeId: editingNode.id, changes });
   };
   const updateEditingText = (changes: Partial<TextElement>) => {
     if (!editingText) return;
-    const updatedText = { ...editingText, ...changes };
-    dispatch({ type: "setEditingText", editingText: updatedText });
-    dispatch({ type: "updateText", text: updatedText });
+    dispatch({ type: "setEditingText", editingText: { ...editingText, ...changes } });
+    dispatch({ type: "updateText", textId: editingText.id, changes });
   };
 
   return (
