@@ -32,13 +32,13 @@ export function DiagramSurface({
   const deltaY = surface.y2 - surface.y1;
   const a = deltaX / grid.width - deltaY / grid.height;
 
-  const left = { x: surface.x1, y: surface.y1 };
-  const top = { x: surface.x1 + a * midWidth, y: surface.y1 - a * midHeight };
-  const right = { x: surface.x2, y: surface.y2 };
-  const bottom = { x: surface.x2 - a * midWidth, y: surface.y2 + a * midHeight };
+  const left = { x: 0, y: 0 };
+  const top = { x: a * midWidth, y: - a * midHeight };
+  const right = { x: deltaX, y: deltaY };
+  const bottom = { x: deltaX - a * midWidth, y: deltaY + a * midHeight };
 
   return (
-    <g>
+    <g transform={`translate(${surface.x1}, ${surface.y1})`}>
       {surface.squared ? (
         <path
           className="surface"
@@ -63,9 +63,26 @@ export function DiagramSurface({
           onContextMenu={onContextMenu}
         />
       )}
+      {surface.label && (
+        <>
+          <line className="surface-label-line"
+            x1={bottom.x - midWidth} y1={bottom.y - midHeight}
+            x2={right.x - midWidth} y2={right.y - midHeight} />
+          <g transform={`translate(${right.x - (a + 1) * midWidth / 2}, ${right.y + (a - 1) * midHeight / 2})`}>
+            <text
+              transform={`scale(1 ${grid.height / grid.width}) rotate(-45)`}
+              className="surface-label"
+              textAnchor="middle"
+              alignmentBaseline="middle"
+            >
+              {surface.label}
+            </text>
+          </g>
+        </>
+      )}
       {selected && (
         <rect
-          className="surface-handle-move"
+          className="surface-handle"
           x={left.x - handleSize / 2}
           y={left.y - handleSize / 2}
           width={handleSize}
@@ -77,7 +94,7 @@ export function DiagramSurface({
       )}
       {selected && (
         <rect
-          className="surface-handle-resize"
+          className="surface-handle"
           x={right.x - handleSize / 2}
           y={right.y - handleSize / 2}
           width={handleSize}

@@ -33,6 +33,7 @@ export type Surface = {
   y2: number;
   squared: boolean;
   backgroundColor: SurfaceColor;
+  label: string;
 };
 
 export type SurfaceColor = "gray" | "blue" | "green" | "yellow" | "red";

@@ -153,6 +153,14 @@ export function DiagramOverlays({
             <h2>Edit surface</h2>
             <button className="close-editor" type="button" onClick={() => dispatch({ type: "setEditing", editing: null })} aria-label="Close editor">×</button>
           </div>
+          <label>
+            Label
+            <input
+              type="text"
+              value={editingSurface.label}
+              onChange={(event) => updateEditingSurface({ label: event.target.value })}
+            />
+          </label>
           <fieldset>
             <legend>Background color</legend>
             <div className="surface-color-options">
@@ -170,6 +178,14 @@ export function DiagramOverlays({
               ))}
             </div>
           </fieldset>
+          <label>
+            <input
+              type="checkbox"
+              checked={editingSurface.squared}
+              onChange={(event) => updateEditingSurface({ squared: event.target.checked })}
+            />
+            Squared
+          </label>
         </aside>
       )}
     </>

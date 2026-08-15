@@ -10,5 +10,6 @@ export const createSurface = (cellX: number, cellY: number): Surface => {
     y2: cellY,
     squared: false,
     backgroundColor: "gray",
+    label: "",
   };
 };

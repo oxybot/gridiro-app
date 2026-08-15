@@ -120,15 +120,17 @@ section {
       }
     }
 
-    rect.surface-handle-move {
-      fill: var(--gray-0);
-      stroke: var(--blue-6);
-      stroke-width: 1.5;
-      pointer-events: all;
-      cursor: move;
+    .surface-label {
+      font-size: var(--font-size-4);
+      fill: var(--gray-9);
     }
 
-    rect.surface-handle-resize {
+    .surface-label-line {
+      stroke: var(--gray-12);
+      stroke-width: 1;
+    }
+
+    .surface-handle {
       fill: var(--gray-0);
       stroke: var(--blue-6);
       stroke-width: 1.5;
