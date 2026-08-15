@@ -58,6 +58,7 @@ export function DiagramTextLabel({ text, selected, onPointerDown, onPointerMove,
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onContextMenu={onContextMenu}
+        onDoubleClick={(event) => event.stopPropagation()}
       />
     </g>
   );

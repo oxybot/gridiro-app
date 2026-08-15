@@ -182,7 +182,9 @@ export function DiagramCanvas({
   const handleDoubleClick = (event: MouseEvent<SVGSVGElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const snappedPoint = snapToIsoGrid(event.clientX - rect.left - pan.x, event.clientY - rect.top - pan.y);
-    if (!nodes.some((node) => node.x === snappedPoint.x && node.y === snappedPoint.y)) {
+    const hasElement = nodes.some((node) => node.x === snappedPoint.x && node.y === snappedPoint.y)
+      || texts.some((text) => text.x === snappedPoint.x && text.y === snappedPoint.y);
+    if (!hasElement) {
       dispatch({ type: "addNode", node: createNode(snappedPoint.x, snappedPoint.y) });
     }
     dispatch({ type: "setHoverPos", position: snappedPoint });
