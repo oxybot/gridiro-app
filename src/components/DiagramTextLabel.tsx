@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import type { PointerEvent } from "react";
+import type { MouseEvent, PointerEvent } from "react";
 import type { TextElement } from "../diagramTypes";
 import { grid } from "../diagramGeometry";
 
@@ -11,9 +11,10 @@ type DiagramTextLabelProps = {
   onPointerDown: (event: PointerEvent<SVGRectElement>) => void;
   onPointerMove: (event: PointerEvent<SVGRectElement>) => void;
   onPointerUp: (event: PointerEvent<SVGRectElement>) => void;
+  onContextMenu: (event: MouseEvent<SVGRectElement>) => void;
 };
 
-export function DiagramTextLabel({ text, onPointerDown, onPointerMove, onPointerUp }: DiagramTextLabelProps) {
+export function DiagramTextLabel({ text, onPointerDown, onPointerMove, onPointerUp, onContextMenu }: DiagramTextLabelProps) {
   const textRef = useRef<SVGTextElement>(null);
   const [box, setBox] = useState({ width: 0, height: 0 });
 
@@ -47,6 +48,7 @@ export function DiagramTextLabel({ text, onPointerDown, onPointerMove, onPointer
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
+        onContextMenu={onContextMenu}
       />
     </g>
   );

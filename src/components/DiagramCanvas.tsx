@@ -136,6 +136,26 @@ export function DiagramCanvas({
     dispatch({ type: "setConnectionDraft", connectionDraft: null });
   };
 
+  // Right-clicking anywhere on a text's rendered label should open its menu, not just its center cell.
+  const handleTextContextMenu = (event: MouseEvent<SVGRectElement>, text: TextElement) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const rect = event.currentTarget.ownerSVGElement?.getBoundingClientRect();
+    dispatch({ type: "setHoverPos", position: { x: text.x, y: text.y } });
+    dispatch({ type: "setEditingNode", editingNode: null });
+    dispatch({ type: "setEditingText", editingText: null });
+    dispatch({
+      type: "setMenu", menu: {
+        isOpen: true,
+        x: text.x,
+        y: text.y,
+        side: rect && text.x > 2 * rect.width / 3 ? "right" : "left",
+        kind: "text",
+        text,
+      }
+    });
+  };
+
   const handleContextMenu = (event: MouseEvent<SVGSVGElement>) => {
     event.preventDefault();
     event.stopPropagation();
@@ -283,6 +303,7 @@ export function DiagramCanvas({
               onPointerDown={(event) => handleElementPointerDown(event, "text", text)}
               onPointerMove={handleElementPointerMove}
               onPointerUp={handleElementPointerUp}
+              onContextMenu={(event) => handleTextContextMenu(event, text)}
             />
           </g>
         ))}
