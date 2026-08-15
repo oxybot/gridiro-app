@@ -1,7 +1,7 @@
 import type { Dispatch, MouseEvent, PointerEvent } from "react";
 import { NodeLabel } from "./NodeLabel";
 import { DiagramTextLabel } from "./DiagramTextLabel";
-import type { AppAction, Connection, ConnectionDraft, DraggingElement, MenuState, Node, PanState, Point, TextElement } from "../diagramTypes";
+import type { AppAction, Connection, ConnectionDraft, DraggingElement, EditingElement, MenuState, Node, PanState, Point, TextElement } from "../diagramTypes";
 import { createNode } from "../diagramNode";
 import { grid, midHeight, midWidth, snapToIsoGrid } from "../diagramGeometry";
 
@@ -16,6 +16,7 @@ export type DiagramCanvasProps = {
   dragging: DraggingElement | null;
   connectionDraft: ConnectionDraft | null;
   menu: MenuState;
+  editing: EditingElement | null;
   dispatch: Dispatch<AppAction>;
 };
 
@@ -30,6 +31,7 @@ export function DiagramCanvas({
   dragging,
   connectionDraft,
   menu,
+  editing,
   dispatch,
 }: DiagramCanvasProps) {
   const getPointerPosition = (event: PointerEvent<SVGElement>) => {
@@ -142,8 +144,7 @@ export function DiagramCanvas({
     event.stopPropagation();
     const rect = event.currentTarget.ownerSVGElement?.getBoundingClientRect();
     dispatch({ type: "setHoverPos", position: { x: text.x, y: text.y } });
-    dispatch({ type: "setEditingNode", editingNode: null });
-    dispatch({ type: "setEditingText", editingText: null });
+    dispatch({ type: "setEditing", editing: null });
     dispatch({
       type: "setMenu", menu: {
         isOpen: true,
@@ -164,8 +165,7 @@ export function DiagramCanvas({
     const node = nodes.find((currentNode) => currentNode.x === snappedPoint.x && currentNode.y === snappedPoint.y);
     const text = !node ? texts.find((currentText) => currentText.x === snappedPoint.x && currentText.y === snappedPoint.y) : undefined;
     dispatch({ type: "setHoverPos", position: snappedPoint });
-    dispatch({ type: "setEditingNode", editingNode: null });
-    dispatch({ type: "setEditingText", editingText: null });
+    dispatch({ type: "setEditing", editing: null });
     dispatch({
       type: "setMenu", menu: {
         isOpen: true,
@@ -186,8 +186,7 @@ export function DiagramCanvas({
       dispatch({ type: "addNode", node: createNode(snappedPoint.x, snappedPoint.y) });
     }
     dispatch({ type: "setHoverPos", position: snappedPoint });
-    dispatch({ type: "setEditingNode", editingNode: null });
-    dispatch({ type: "setEditingText", editingText: null });
+    dispatch({ type: "setEditing", editing: null });
     closeMenu();
   };
 
@@ -264,7 +263,7 @@ export function DiagramCanvas({
           );
         })()}
 
-        {menu.isOpen && menu.kind !== "text" && (
+        {menu.isOpen && menu.kind === "empty" && (
           <path
             className="menu-selection"
             d={`M 0 ${midHeight} L ${midWidth} 0 ${grid.width} ${midHeight} ${midWidth} ${grid.height} 0 ${midHeight}`}
@@ -286,6 +285,12 @@ export function DiagramCanvas({
             />
             <NodeLabel label={node.label} y={-1.3 * grid.height} />
             <path
+              className="menu-selection"
+              d={`M 0 ${midHeight} L ${midWidth} 0 ${grid.width} ${midHeight} ${midWidth} ${grid.height} 0 ${midHeight}`}
+              transform={`translate(${-midWidth} ${-midHeight})`}
+              style={{ opacity: (menu.isOpen && menu.kind === "node" && menu.node?.id === node.id) || (editing?.kind === "node" && editing.node.id === node.id) ? 1 : 0 }}
+            />
+            <path
               className="drag-handle"
               d={`M 0 ${-midHeight} L ${midWidth} 0 0 ${midHeight} ${-midWidth} 0 Z`}
               onPointerDown={(event) => handleElementPointerDown(event, "node", node)}
@@ -300,7 +305,7 @@ export function DiagramCanvas({
           <g key={text.id} className="text-element" transform={`translate(${text.x} ${text.y})`}>
             <DiagramTextLabel
               text={text}
-              selected={menu.isOpen && menu.kind === "text" && menu.text?.id === text.id}
+              selected={(menu.isOpen && menu.kind === "text" && menu.text?.id === text.id) || (editing?.kind === "text" && editing.text.id === text.id)}
               onPointerDown={(event) => handleElementPointerDown(event, "text", text)}
               onPointerMove={handleElementPointerMove}
               onPointerUp={handleElementPointerUp}

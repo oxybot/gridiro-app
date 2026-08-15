@@ -1,33 +1,33 @@
 import type { Dispatch, MouseEvent } from "react";
 import { isoflowIcons } from "../assets/isoflowIcons";
-import type { AppAction, MenuState, Node, Point, TextElement, TextOrientation, TextSize } from "../diagramTypes";
+import type { AppAction, EditingElement, MenuState, Node, Point, TextElement, TextOrientation, TextSize } from "../diagramTypes";
 import { createNode } from "../diagramNode";
 import { createText } from "../diagramText";
 
 type DiagramOverlaysProps = {
   menu: MenuState;
   pan: Point;
-  editingNode: Node | null;
-  editingText: TextElement | null;
+  editing: EditingElement | null;
   dispatch: Dispatch<AppAction>;
 };
 
 export function DiagramOverlays({
   menu,
   pan,
-  editingNode,
-  editingText,
+  editing,
   dispatch,
 }: DiagramOverlaysProps) {
   const closeMenu = () => dispatch({ type: "closeMenu" });
+  const editingNode = editing?.kind === "node" ? editing.node : null;
+  const editingText = editing?.kind === "text" ? editing.text : null;
   const updateEditingNode = (changes: Partial<Node>) => {
     if (!editingNode) return;
-    dispatch({ type: "setEditingNode", editingNode: { ...editingNode, ...changes } });
+    dispatch({ type: "setEditing", editing: { kind: "node", node: { ...editingNode, ...changes } } });
     dispatch({ type: "updateNode", nodeId: editingNode.id, changes });
   };
   const updateEditingText = (changes: Partial<TextElement>) => {
     if (!editingText) return;
-    dispatch({ type: "setEditingText", editingText: { ...editingText, ...changes } });
+    dispatch({ type: "setEditing", editing: { kind: "text", text: { ...editingText, ...changes } } });
     dispatch({ type: "updateText", textId: editingText.id, changes });
   };
 
@@ -47,13 +47,13 @@ export function DiagramOverlays({
             </>
           ) : menu.kind === "node" ? (
             <>
-              <button type="button" onClick={() => { if (menu.node) { dispatch({ type: "setEditingNode", editingNode: menu.node }); dispatch({ type: "setEditingText", editingText: null }); } closeMenu(); }}>Edit node</button>
+              <button type="button" onClick={() => { if (menu.node) dispatch({ type: "setEditing", editing: { kind: "node", node: menu.node } }); closeMenu(); }}>Edit node</button>
               <button type="button" onClick={() => { if (menu.node) dispatch({ type: "setConnectionDraft", connectionDraft: { sourceId: menu.node.id, pointerPosition: { x: menu.node.x, y: menu.node.y } } }); closeMenu(); }}>Add connection</button>
               <button type="button" onClick={() => { if (menu.node) dispatch({ type: "removeNode", nodeId: menu.node.id }); closeMenu(); }}>Remove node</button>
             </>
           ) : (
             <>
-              <button type="button" onClick={() => { if (menu.text) { dispatch({ type: "setEditingText", editingText: menu.text }); dispatch({ type: "setEditingNode", editingNode: null }); } closeMenu(); }}>Edit text</button>
+              <button type="button" onClick={() => { if (menu.text) dispatch({ type: "setEditing", editing: { kind: "text", text: menu.text } }); closeMenu(); }}>Edit text</button>
               <button type="button" onClick={() => { if (menu.text) dispatch({ type: "removeText", textId: menu.text.id }); closeMenu(); }}>Remove text</button>
             </>
           )}
@@ -63,7 +63,7 @@ export function DiagramOverlays({
         <aside className="node-editor" onClick={(event: MouseEvent<HTMLElement>) => event.stopPropagation()}>
           <div className="node-editor-header">
             <h2>Edit node</h2>
-            <button className="close-editor" type="button" onClick={() => dispatch({ type: "setEditingNode", editingNode: null })} aria-label="Close editor">×</button>
+            <button className="close-editor" type="button" onClick={() => dispatch({ type: "setEditing", editing: null })} aria-label="Close editor">×</button>
           </div>
           <label>
             Label
@@ -95,7 +95,7 @@ export function DiagramOverlays({
         <aside className="node-editor" onClick={(event: MouseEvent<HTMLElement>) => event.stopPropagation()}>
           <div className="node-editor-header">
             <h2>Edit text</h2>
-            <button className="close-editor" type="button" onClick={() => dispatch({ type: "setEditingText", editingText: null })} aria-label="Close editor">×</button>
+            <button className="close-editor" type="button" onClick={() => dispatch({ type: "setEditing", editing: null })} aria-label="Close editor">×</button>
           </div>
           <label>
             Content

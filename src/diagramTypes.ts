@@ -57,6 +57,10 @@ export type PanState = {
   startPosition: Point;
 };
 
+export type EditingElement =
+  | { kind: "node"; node: Node }
+  | { kind: "text"; text: TextElement };
+
 export type AppState = {
   nodes: Node[];
   connections: Connection[];
@@ -68,8 +72,7 @@ export type AppState = {
   panning: PanState | null;
   connectionDraft: ConnectionDraft | null;
   menu: MenuState;
-  editingNode: Node | null;
-  editingText: TextElement | null;
+  editing: EditingElement | null;
 };
 
 export type AppAction =
@@ -90,6 +93,5 @@ export type AppAction =
   | { type: "setConnectionDraft"; connectionDraft: ConnectionDraft | null }
   | { type: "setMenu"; menu: MenuState }
   | { type: "closeMenu" }
-  | { type: "setEditingNode"; editingNode: Node | null }
-  | { type: "setEditingText"; editingText: TextElement | null };
+  | { type: "setEditing"; editing: EditingElement | null };
 

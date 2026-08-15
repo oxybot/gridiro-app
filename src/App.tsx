@@ -42,8 +42,7 @@ const createInitialState = (): AppState => ({
     side: "left",
     kind: "empty",
   },
-  editingNode: null,
-  editingText: null,
+  editing: null,
 });
 
 const appReducer = (state: AppState, action: AppAction): AppState => {
@@ -92,10 +91,8 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       return { ...state, menu: action.menu };
     case "closeMenu":
       return { ...state, menu: { ...state.menu, isOpen: false } };
-    case "setEditingNode":
-      return { ...state, editingNode: action.editingNode };
-    case "setEditingText":
-      return { ...state, editingText: action.editingText };
+    case "setEditing":
+      return { ...state, editing: action.editing };
   }
 };
 
@@ -124,13 +121,13 @@ export default function App() {
           dragging={state.dragging}
           connectionDraft={state.connectionDraft}
           menu={state.menu}
+          editing={state.editing}
           dispatch={dispatch}
         />
         <DiagramOverlays
           menu={state.menu}
           pan={state.pan}
-          editingNode={state.editingNode}
-          editingText={state.editingText}
+          editing={state.editing}
           dispatch={dispatch}
         />
       </section>
