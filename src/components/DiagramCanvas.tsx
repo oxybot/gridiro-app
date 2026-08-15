@@ -88,7 +88,7 @@ export function DiagramCanvas({
     dispatch({ type: "setPanning", panning: null });
   };
 
-  const handleElementPointerDown = (event: PointerEvent<SVGPathElement>, kind: "node" | "text", element: Point & { id: string }) => {
+  const handleElementPointerDown = (event: PointerEvent<SVGGraphicsElement>, kind: "node" | "text", element: Point & { id: string }) => {
     if (event.button !== 0) return;
     event.stopPropagation();
     if (connectionDraft) return;
@@ -99,7 +99,7 @@ export function DiagramCanvas({
     closeMenu();
   };
 
-  const handleElementPointerMove = (event: PointerEvent<SVGPathElement>) => {
+  const handleElementPointerMove = (event: PointerEvent<SVGGraphicsElement>) => {
     if (!dragging) return;
     const gridPosition = getGridPosition(event);
     if (!gridPosition) return;
@@ -118,7 +118,7 @@ export function DiagramCanvas({
     }
   };
 
-  const handleElementPointerUp = (event: PointerEvent<SVGPathElement>) => {
+  const handleElementPointerUp = (event: PointerEvent<SVGGraphicsElement>) => {
     event.currentTarget.releasePointerCapture(event.pointerId);
     dispatch({ type: "setDragging", dragging: null });
   };
@@ -278,10 +278,8 @@ export function DiagramCanvas({
 
         {texts.map((text) => (
           <g key={text.id} className="text-element" transform={`translate(${text.x} ${text.y})`}>
-            <DiagramTextLabel text={text} />
-            <path
-              className="drag-handle"
-              d={`M 0 ${-midHeight} L ${midWidth} 0 0 ${midHeight} ${-midWidth} 0 Z`}
+            <DiagramTextLabel
+              text={text}
               onPointerDown={(event) => handleElementPointerDown(event, "text", text)}
               onPointerMove={handleElementPointerMove}
               onPointerUp={handleElementPointerUp}

@@ -1,11 +1,19 @@
 import { useLayoutEffect, useRef, useState } from "react";
+import type { PointerEvent } from "react";
 import type { TextElement } from "../diagramTypes";
 import { grid } from "../diagramGeometry";
 
 const textPaddingX = 6;
 const textPaddingY = 4;
 
-export function DiagramTextLabel({ text }: { text: TextElement }) {
+type DiagramTextLabelProps = {
+  text: TextElement;
+  onPointerDown: (event: PointerEvent<SVGRectElement>) => void;
+  onPointerMove: (event: PointerEvent<SVGRectElement>) => void;
+  onPointerUp: (event: PointerEvent<SVGRectElement>) => void;
+};
+
+export function DiagramTextLabel({ text, onPointerDown, onPointerMove, onPointerUp }: DiagramTextLabelProps) {
   const textRef = useRef<SVGTextElement>(null);
   const [box, setBox] = useState({ width: 0, height: 0 });
 
@@ -30,6 +38,16 @@ export function DiagramTextLabel({ text }: { text: TextElement }) {
         x="0" y="0">
         {text.content}
       </text>
+      <rect
+        className="drag-handle"
+        x={-box.width / 2 - textPaddingX}
+        y={-box.height / 2 - textPaddingY}
+        width={box.width + textPaddingX * 2}
+        height={box.height + textPaddingY * 2}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+      />
     </g>
   );
 }

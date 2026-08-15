@@ -107,7 +107,7 @@ section {
       stroke-width: 1;
     }
 
-    path.drag-handle {
+    .drag-handle {
       fill: transparent;
       pointer-events: all;
       cursor: grab;
