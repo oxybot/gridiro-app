@@ -206,7 +206,7 @@ export function DiagramCanvas({
           className="hover"
           d={`M 0 ${midHeight} L ${midWidth} 0 ${grid.width} ${midHeight} ${midWidth} ${grid.height} 0 ${midHeight}`}
           transform={`translate(${hoverPos.x - midWidth} ${hoverPos.y - midHeight})`}
-          style={{ opacity: isHovering ? 1 : 0 }}
+          style={{ opacity: isHovering && !dragging ? 1 : 0 }}
         />
 
         {connections.map((connection) => {
