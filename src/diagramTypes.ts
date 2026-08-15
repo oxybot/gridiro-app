@@ -8,6 +8,18 @@ export type Node = {
   icon: IsoflowIcon;
 };
 
+export type TextOrientation = "horizontal" | "vertical";
+export type TextSize = "small" | "medium" | "large";
+
+export type TextElement = {
+  id: string;
+  x: number;
+  y: number;
+  content: string;
+  orientation: TextOrientation;
+  size: TextSize;
+};
+
 export type Connection = {
   sourceId: string;
   targetId: string;
@@ -28,12 +40,15 @@ export type MenuState = {
   x: number;
   y: number;
   side: "left" | "right";
-  kind: "empty" | "node";
+  kind: "empty" | "node" | "text";
   node?: Node;
+  text?: TextElement;
 };
 
-export type DragState = {
-  node: Node;
+// A dragged element is looked up by id from the nodes/texts arrays, so only its kind, id and pointer offset need tracking.
+export type DraggingElement = {
+  kind: "node" | "text";
+  id: string;
   pointerOffset: Point;
 };
 
@@ -45,14 +60,16 @@ export type PanState = {
 export type AppState = {
   nodes: Node[];
   connections: Connection[];
+  texts: TextElement[];
   hoverPos: Point;
   isHovering: boolean;
-  draggingNode: DragState | null;
+  dragging: DraggingElement | null;
   pan: Point;
   panning: PanState | null;
   connectionDraft: ConnectionDraft | null;
   menu: MenuState;
   editingNode: Node | null;
+  editingText: TextElement | null;
 };
 
 export type AppAction =
@@ -60,14 +77,19 @@ export type AppAction =
   | { type: "moveNode"; nodeId: string; position: Point }
   | { type: "updateNode"; node: Node }
   | { type: "removeNode"; nodeId: string }
+  | { type: "addText"; text: TextElement }
+  | { type: "moveText"; textId: string; position: Point }
+  | { type: "updateText"; text: TextElement }
+  | { type: "removeText"; textId: string }
   | { type: "addConnection"; connection: Connection }
   | { type: "setHoverPos"; position: Point }
   | { type: "setHovering"; isHovering: boolean }
-  | { type: "setDraggingNode"; draggingNode: DragState | null }
+  | { type: "setDragging"; dragging: DraggingElement | null }
   | { type: "setPan"; pan: Point }
   | { type: "setPanning"; panning: PanState | null }
   | { type: "setConnectionDraft"; connectionDraft: ConnectionDraft | null }
   | { type: "setMenu"; menu: MenuState }
   | { type: "closeMenu" }
-  | { type: "setEditingNode"; editingNode: Node | null };
+  | { type: "setEditingNode"; editingNode: Node | null }
+  | { type: "setEditingText"; editingText: TextElement | null };
 

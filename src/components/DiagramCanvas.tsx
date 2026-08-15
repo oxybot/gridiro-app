@@ -1,17 +1,19 @@
 import type { Dispatch, MouseEvent, PointerEvent } from "react";
 import { NodeLabel } from "./NodeLabel";
-import type { AppAction, Connection, ConnectionDraft, DragState, MenuState, Node, PanState, Point } from "../diagramTypes";
+import { DiagramTextLabel } from "./DiagramTextLabel";
+import type { AppAction, Connection, ConnectionDraft, DraggingElement, MenuState, Node, PanState, Point, TextElement } from "../diagramTypes";
 import { createNode } from "../diagramNode";
 import { grid, midHeight, midWidth, snapToIsoGrid } from "../diagramGeometry";
 
 export type DiagramCanvasProps = {
   nodes: Node[];
   connections: Connection[];
+  texts: TextElement[];
   hoverPos: Point;
   isHovering: boolean;
   pan: Point;
   panning: PanState | null;
-  draggingNode: DragState | null;
+  dragging: DraggingElement | null;
   connectionDraft: ConnectionDraft | null;
   menu: MenuState;
   dispatch: Dispatch<AppAction>;
@@ -20,11 +22,12 @@ export type DiagramCanvasProps = {
 export function DiagramCanvas({
   nodes,
   connections,
+  texts,
   hoverPos,
   isHovering,
   pan,
   panning,
-  draggingNode,
+  dragging,
   connectionDraft,
   menu,
   dispatch,
@@ -72,10 +75,12 @@ export function DiagramCanvas({
     if (!panning) return;
     const pointerPosition = getPointerPosition(event);
     if (!pointerPosition) return;
-    dispatch({ type: "setPan", pan: {
-      x: panning.startPosition.x + pointerPosition.x - panning.pointerPosition.x,
-      y: panning.startPosition.y + pointerPosition.y - panning.pointerPosition.y,
-    } });
+    dispatch({
+      type: "setPan", pan: {
+        x: panning.startPosition.x + pointerPosition.x - panning.pointerPosition.x,
+        y: panning.startPosition.y + pointerPosition.y - panning.pointerPosition.y,
+      }
+    });
   };
 
   const handleGridPointerUp = (event: PointerEvent<SVGRectElement>) => {
@@ -83,34 +88,39 @@ export function DiagramCanvas({
     dispatch({ type: "setPanning", panning: null });
   };
 
-  const handleNodePointerDown = (event: PointerEvent<SVGPathElement>, node: Node) => {
+  const handleElementPointerDown = (event: PointerEvent<SVGPathElement>, kind: "node" | "text", element: Point & { id: string }) => {
     if (event.button !== 0) return;
     event.stopPropagation();
     if (connectionDraft) return;
     const gridPosition = getGridPosition(event);
     if (!gridPosition) return;
     event.currentTarget.setPointerCapture(event.pointerId);
-    dispatch({ type: "setDraggingNode", draggingNode: { node, pointerOffset: { x: gridPosition.x - node.x, y: gridPosition.y - node.y } } });
+    dispatch({ type: "setDragging", dragging: { kind, id: element.id, pointerOffset: { x: gridPosition.x - element.x, y: gridPosition.y - element.y } } });
     closeMenu();
   };
 
-  const handleNodePointerMove = (event: PointerEvent<SVGPathElement>) => {
-    if (!draggingNode) return;
+  const handleElementPointerMove = (event: PointerEvent<SVGPathElement>) => {
+    if (!dragging) return;
     const gridPosition = getGridPosition(event);
     if (!gridPosition) return;
     const snappedPoint = snapToIsoGrid(
-      gridPosition.x - draggingNode.pointerOffset.x,
-      gridPosition.y - draggingNode.pointerOffset.y,
+      gridPosition.x - dragging.pointerOffset.x,
+      gridPosition.y - dragging.pointerOffset.y,
     );
-    if (snappedPoint.x === draggingNode.node.x && snappedPoint.y === draggingNode.node.y) return;
-    const updatedNode = { ...draggingNode.node, ...snappedPoint };
-    dispatch({ type: "setDraggingNode", draggingNode: { ...draggingNode, node: updatedNode } });
-    dispatch({ type: "moveNode", nodeId: draggingNode.node.id, position: snappedPoint });
+    if (dragging.kind === "node") {
+      const node = nodes.find((currentNode) => currentNode.id === dragging.id);
+      if (node && node.x === snappedPoint.x && node.y === snappedPoint.y) return;
+      dispatch({ type: "moveNode", nodeId: dragging.id, position: snappedPoint });
+    } else {
+      const text = texts.find((currentText) => currentText.id === dragging.id);
+      if (text && text.x === snappedPoint.x && text.y === snappedPoint.y) return;
+      dispatch({ type: "moveText", textId: dragging.id, position: snappedPoint });
+    }
   };
 
-  const handleNodePointerUp = (event: PointerEvent<SVGPathElement>) => {
+  const handleElementPointerUp = (event: PointerEvent<SVGPathElement>) => {
     event.currentTarget.releasePointerCapture(event.pointerId);
-    dispatch({ type: "setDraggingNode", draggingNode: null });
+    dispatch({ type: "setDragging", dragging: null });
   };
 
   const handleNodeClick = (event: MouseEvent<SVGPathElement>, node: Node) => {
@@ -132,16 +142,21 @@ export function DiagramCanvas({
     const rect = event.currentTarget.getBoundingClientRect();
     const snappedPoint = snapToIsoGrid(event.clientX - rect.left - pan.x, event.clientY - rect.top - pan.y);
     const node = nodes.find((currentNode) => currentNode.x === snappedPoint.x && currentNode.y === snappedPoint.y);
+    const text = !node ? texts.find((currentText) => currentText.x === snappedPoint.x && currentText.y === snappedPoint.y) : undefined;
     dispatch({ type: "setHoverPos", position: snappedPoint });
     dispatch({ type: "setEditingNode", editingNode: null });
-    dispatch({ type: "setMenu", menu: {
-      isOpen: true,
-      x: snappedPoint.x,
-      y: snappedPoint.y,
-      side: snappedPoint.x > 2 * rect.width / 3 ? "right" : "left",
-      kind: node ? "node" : "empty",
-      node,
-    } });
+    dispatch({ type: "setEditingText", editingText: null });
+    dispatch({
+      type: "setMenu", menu: {
+        isOpen: true,
+        x: snappedPoint.x,
+        y: snappedPoint.y,
+        side: snappedPoint.x > 2 * rect.width / 3 ? "right" : "left",
+        kind: node ? "node" : text ? "text" : "empty",
+        node,
+        text,
+      }
+    });
   };
 
   const handleDoubleClick = (event: MouseEvent<SVGSVGElement>) => {
@@ -152,6 +167,7 @@ export function DiagramCanvas({
     }
     dispatch({ type: "setHoverPos", position: snappedPoint });
     dispatch({ type: "setEditingNode", editingNode: null });
+    dispatch({ type: "setEditingText", editingText: null });
     closeMenu();
   };
 
@@ -250,12 +266,25 @@ export function DiagramCanvas({
             />
             <NodeLabel label={node.label} y={-1.3 * grid.height} />
             <path
-              className="node-drag-handle"
+              className="drag-handle"
               d={`M 0 ${-midHeight} L ${midWidth} 0 0 ${midHeight} ${-midWidth} 0 Z`}
-              onPointerDown={(event) => handleNodePointerDown(event, node)}
-              onPointerMove={handleNodePointerMove}
-              onPointerUp={handleNodePointerUp}
+              onPointerDown={(event) => handleElementPointerDown(event, "node", node)}
+              onPointerMove={handleElementPointerMove}
+              onPointerUp={handleElementPointerUp}
               onClick={(event) => handleNodeClick(event, node)}
+            />
+          </g>
+        ))}
+
+        {texts.map((text) => (
+          <g key={text.id} className="text-element" transform={`translate(${text.x} ${text.y})`}>
+            <DiagramTextLabel text={text} />
+            <path
+              className="drag-handle"
+              d={`M 0 ${-midHeight} L ${midWidth} 0 0 ${midHeight} ${-midWidth} 0 Z`}
+              onPointerDown={(event) => handleElementPointerDown(event, "text", text)}
+              onPointerMove={handleElementPointerMove}
+              onPointerUp={handleElementPointerUp}
             />
           </g>
         ))}

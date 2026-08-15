@@ -72,7 +72,30 @@ section {
       fill: var(--gray-8);
     }
 
+    text.text-label {
+      fill: var(--gray-9);
+    }
+
+    text.text-label-small {
+      font-size: var(--font-size-0);
+    }
+
+    text.text-label-medium {
+      font-size: var(--font-size-2);
+    }
+
+    text.text-label-large {
+      font-size: var(--font-size-4);
+    }
+
     rect.node-label-bg {
+      fill: var(--gray-0);
+      stroke: var(--gray-4);
+      stroke-width: 1;
+      rx: var(--radius-2);
+    }
+
+    rect.text-label-bg {
       fill: var(--gray-0);
       stroke: var(--gray-4);
       stroke-width: 1;
@@ -84,7 +107,7 @@ section {
       stroke-width: 1;
     }
 
-    path.node-drag-handle {
+    path.drag-handle {
       fill: transparent;
       pointer-events: all;
       cursor: grab;
@@ -195,6 +218,13 @@ section {
         background-color: var(--blue-1);
       }
     }
+  }
+
+  .radio-option {
+    display: flex;
+    align-items: center;
+    gap: var(--size-1);
+    text-transform: capitalize;
   }
 
   .close-editor {
