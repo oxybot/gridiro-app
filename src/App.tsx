@@ -1,6 +1,6 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Canvas } from "./components/Canvas";
-import { DiagramProvider, useDocumentState, useViewDispatch, useViewState } from "./state/DiagramProvider";
+import { DiagramProvider, useDocumentDispatch, useDocumentHistory, useDocumentState, useViewDispatch, useViewState } from "./state/DiagramProvider";
 import { defaultZoomIndex, getContentBounds, zoomLevels } from "./model/geometry";
 import { ContextMenu } from "./components/ContextMenu";
 import { ElementEditor } from "./components/ElementEditor";
@@ -9,9 +9,25 @@ const viewportPadding = 40;
 
 function Diagram() {
   const documentState = useDocumentState();
+  const dispatchDocument = useDocumentDispatch();
+  const { canUndo, canRedo } = useDocumentHistory();
   const viewState = useViewState();
   const dispatchView = useViewDispatch();
   const diagramRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
+      if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "z") return;
+
+      event.preventDefault();
+      dispatchDocument({ type: event.shiftKey ? "redo" : "undo" });
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [dispatchDocument]);
 
   const zoomFromCenter = (type: "zoomIn" | "zoomOut") => {
     const rect = diagramRef.current?.getBoundingClientRect();
@@ -55,6 +71,8 @@ function Diagram() {
         <ContextMenu />
         <ElementEditor />
         <div className="zoom-controls" onClick={(event) => event.stopPropagation()}>
+          <button type="button" onClick={() => dispatchDocument({ type: "undo" })} disabled={!canUndo} aria-label="Undo last change">↶</button>
+          <button type="button" onClick={() => dispatchDocument({ type: "redo" })} disabled={!canRedo} aria-label="Redo last change">↷</button>
           <button type="button" onClick={() => zoomFromCenter("zoomOut")} disabled={viewState.zoomIndex === 0} aria-label="Zoom out">−</button>
           <span>{Math.round(zoomLevels[viewState.zoomIndex] * 100)}%</span>
           <button type="button" onClick={() => zoomFromCenter("zoomIn")} disabled={viewState.zoomIndex === zoomLevels.length - 1} aria-label="Zoom in">+</button>

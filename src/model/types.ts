@@ -130,6 +130,12 @@ export type DocumentAction =
   | { type: "updateConnection"; connectionId: string; changes: Partial<Connection> }
   | { type: "removeConnection"; connectionId: string };
 
+export type HistoryAction =
+  | { type: "undo" }
+  | { type: "redo" };
+
+export type DocumentDispatchAction = DocumentAction | HistoryAction;
+
 export type ViewAction =
   | { type: "setSelectedSurface"; surfaceId: string | null }
   | { type: "setResizingSurface"; resizingSurface: ResizingSurface | null }
