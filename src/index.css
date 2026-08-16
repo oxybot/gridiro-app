@@ -219,6 +219,7 @@ section {
     padding: var(--size-1) var(--size-2);
     border: var(--border-size-1) var(--gray-5) solid;
     border-radius: var(--radius-1);
+    background-color: var(--gray-0);
   }
 
   fieldset {
@@ -230,6 +231,19 @@ section {
     padding: 0;
   }
 
+  button {
+    border: var(--border-size-1) transparent solid;
+    border-radius: var(--radius-1);
+    background: transparent;
+    cursor: pointer;
+
+    &:hover,
+    &.selected {
+      border-color: var(--blue-6);
+      background-color: var(--blue-1);
+    }
+  }
+
   .icon-options {
     display: grid;
     grid-template-columns: repeat(auto-fill, var(--size-8));
@@ -238,16 +252,6 @@ section {
     button {
       min-width: var(--size-8);
       min-height: var(--size-8);
-      border: var(--border-size-1) transparent solid;
-      border-radius: var(--radius-1);
-      background: transparent;
-      cursor: pointer;
-
-      &:hover,
-      &.selected {
-        border-color: var(--blue-6);
-        background-color: var(--blue-1);
-      }
     }
 
     .surface-color-options {
