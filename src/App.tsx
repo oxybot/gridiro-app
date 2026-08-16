@@ -55,6 +55,7 @@ export default function App() {
         <DiagramOverlays
           menu={state.menu}
           pan={state.pan}
+          zoom={zoomLevels[state.zoomIndex]}
           editing={state.editing}
           dispatch={dispatch}
         />

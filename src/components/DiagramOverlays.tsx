@@ -9,6 +9,7 @@ import { grid } from "../model/geometry";
 type DiagramOverlaysProps = {
   menu: MenuState;
   pan: Point;
+  zoom: number;
   editing: EditingElement | null;
   dispatch: Dispatch<AppAction>;
 };
@@ -16,6 +17,7 @@ type DiagramOverlaysProps = {
 export function DiagramOverlays({
   menu,
   pan,
+  zoom,
   editing,
   dispatch,
 }: DiagramOverlaysProps) {
@@ -44,7 +46,7 @@ export function DiagramOverlays({
       {menu.isOpen && (
         <div
           className={`diagram-menu ${menu.side}`}
-          style={{ left: menu.x + pan.x, top: menu.y + pan.y }}
+          style={{ left: menu.x * zoom + pan.x, top: menu.y * zoom + pan.y }}
           onClick={(event) => event.stopPropagation()}
         >
           {menu.kind === "empty" ? (
