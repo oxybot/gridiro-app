@@ -1,8 +1,9 @@
 import { useRef } from "react";
 import { Canvas } from "./components/Canvas";
-import { Overlays } from "./components/Overlays";
 import { DiagramProvider, useDocumentState, useViewDispatch, useViewState } from "./state/DiagramProvider";
 import { defaultZoomIndex, getContentBounds, zoomLevels } from "./model/geometry";
+import { ContextMenu } from "./components/ContextMenu";
+import { ElementEditor } from "./components/ElementEditor";
 
 const viewportPadding = 40;
 
@@ -51,7 +52,8 @@ function Diagram() {
       </section>
       <section className="diagram" ref={diagramRef} onClick={() => dispatchView({ type: "closeMenu" })}>
         <Canvas />
-        <Overlays />
+        <ContextMenu />
+        <ElementEditor />
         <div className="zoom-controls" onClick={(event) => event.stopPropagation()}>
           <button type="button" onClick={() => zoomFromCenter("zoomOut")} disabled={viewState.zoomIndex === 0} aria-label="Zoom out">−</button>
           <span>{Math.round(zoomLevels[viewState.zoomIndex] * 100)}%</span>
