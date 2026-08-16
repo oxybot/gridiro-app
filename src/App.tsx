@@ -45,7 +45,7 @@ export default function App() {
   return (
     <>
       <section>
-        <h1>Gridiro App <small>Hackathon</small></h1>
+        <h1>Gridiro App <small>Hackathon mode</small></h1>
       </section>
       <section className="diagram" ref={diagramRef} onClick={() => dispatch({ type: "closeMenu" })}>
         <DiagramCanvas
