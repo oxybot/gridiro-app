@@ -61,6 +61,10 @@ function Diagram() {
     });
   };
 
+  useEffect(() => {
+    fitToContent();
+  }, []);
+
   return (
     <>
       <section>
