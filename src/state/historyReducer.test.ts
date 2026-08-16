@@ -49,6 +49,29 @@ describe("historyReducer", () => {
     expect(undone.present).toEqual(initial.present);
   });
 
+  it("records a surface resize as one history entry", () => {
+    const surface = {
+      id: "surface-1",
+      x1: 0,
+      y1: 50,
+      x2: 160,
+      y2: 50,
+      squared: false,
+      backgroundColor: "gray" as const,
+      label: "",
+    };
+    const initial = createDocumentHistory({ ...emptyDocument, surfaces: [surface] });
+    const started = historyReducer(initial, { type: "startMove" });
+    const previewed = historyReducer(started, { type: "previewUpdateSurface", surfaceId: surface.id, changes: { x2: 240, y2: 100 } });
+    const previewedAgain = historyReducer(previewed, { type: "previewUpdateSurface", surfaceId: surface.id, changes: { x2: 320, y2: 150 } });
+    const finished = historyReducer(previewedAgain, { type: "finishMove" });
+    const undone = historyReducer(finished, { type: "undo" });
+
+    expect(previewedAgain.past).toHaveLength(0);
+    expect(finished.past).toEqual([initial.present]);
+    expect(undone.present).toEqual(initial.present);
+  });
+
   it("records a text edit as one history entry after preview updates", () => {
     const initial = createDocumentHistory({ ...emptyDocument, nodes: [node("node-1")] });
     const started = historyReducer(initial, { type: "startEdit" });
@@ -58,6 +81,19 @@ describe("historyReducer", () => {
     const undone = historyReducer(finished, { type: "undo" });
 
     expect(previewedAgain.past).toHaveLength(0);
+    expect(finished.past).toEqual([initial.present]);
+    expect(undone.present).toEqual(initial.present);
+  });
+
+  it("records an icon change as one history entry", () => {
+    const initial = createDocumentHistory({ ...emptyDocument, nodes: [node("node-1")] });
+    const icon = { id: "new-icon", name: "New icon", url: "new.svg", width: 2, height: 2 };
+    const started = historyReducer(initial, { type: "startEdit" });
+    const previewed = historyReducer(started, { type: "previewUpdateNode", nodeId: "node-1", changes: { icon } });
+    const finished = historyReducer(previewed, { type: "finishEdit" });
+    const undone = historyReducer(finished, { type: "undo" });
+
+    expect(finished.present.nodes[0].icon).toEqual(icon);
     expect(finished.past).toEqual([initial.present]);
     expect(undone.present).toEqual(initial.present);
   });

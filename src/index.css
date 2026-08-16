@@ -311,6 +311,22 @@ button {
       align-items: flex-end;
     }
 
+    &.options-icons {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+
+      button {
+        width: 100%;
+        aspect-ratio: 1;
+      }
+
+      img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+      }
+    }
+
     &.options-color button {
       aspect-ratio: 1;
       border: var(--border-size-1) var(--gray-4) solid;

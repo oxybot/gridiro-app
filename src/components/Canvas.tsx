@@ -130,10 +130,10 @@ export function Canvas() {
 
     switch (resizingSurface.corner) {
       case "left":
-        dispatchDocument({ type: "updateSurface", surfaceId: surface.id, changes: { x1: local.x, y1: local.y } });
+        dispatchDocument({ type: "previewUpdateSurface", surfaceId: surface.id, changes: { x1: local.x, y1: local.y } });
         break;
       case "right":
-        dispatchDocument({ type: "updateSurface", surfaceId: surface.id, changes: { x2: local.x, y2: local.y } });
+        dispatchDocument({ type: "previewUpdateSurface", surfaceId: surface.id, changes: { x2: local.x, y2: local.y } });
         break;
       case "top":
       case "bottom":
@@ -145,11 +145,13 @@ export function Canvas() {
     if (event.button !== 0) return;
     event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
+    dispatchDocument({ type: "startMove" });
     dispatchView({ type: "setResizingSurface", resizingSurface: { surfaceId: surface.id, corner } });
   };
 
   const handleSurfaceCornerPointerUp = (event: PointerEvent<SVGRectElement>) => {
     event.currentTarget.releasePointerCapture(event.pointerId);
+    dispatchDocument({ type: "finishMove" });
     dispatchView({ type: "setResizingSurface", resizingSurface: null });
   };
 

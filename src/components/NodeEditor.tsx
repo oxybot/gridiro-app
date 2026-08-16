@@ -33,13 +33,17 @@ export function NodeEditor({ node }: NodeEditorProps) {
       </label>
       <fieldset>
         <legend>Icon</legend>
-        <div className="options">
+        <div className="options options-icons">
           {isoflowIcons.icons.map((icon) => (
             <button
               className={node.icon.id === icon.id ? "selected" : ""}
               type="button"
               key={icon.id}
-              onClick={() => updateNode({ icon })}
+              onClick={() => {
+                dispatchDocument({ type: "startEdit" });
+                updateNode({ icon });
+                dispatchDocument({ type: "finishEdit" });
+              }}
               aria-label={`Select ${icon.name} icon`}
             >
               <img src={icon.url} alt={icon.name} />
