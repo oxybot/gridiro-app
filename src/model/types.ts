@@ -132,7 +132,18 @@ export type DocumentAction =
 
 export type HistoryAction =
   | { type: "undo" }
-  | { type: "redo" };
+  | { type: "redo" }
+  | { type: "startMove" }
+  | { type: "previewMoveNode"; nodeId: string; position: Point }
+  | { type: "previewMoveText"; textId: string; position: Point }
+  | { type: "previewMoveSurface"; surfaceId: string; position: Point }
+  | { type: "finishMove" }
+  | { type: "startEdit" }
+  | { type: "previewUpdateNode"; nodeId: string; changes: Partial<Node> }
+  | { type: "previewUpdateText"; textId: string; changes: Partial<TextElement> }
+  | { type: "previewUpdateSurface"; surfaceId: string; changes: Partial<Surface> }
+  | { type: "previewUpdateConnection"; connectionId: string; changes: Partial<Connection> }
+  | { type: "finishEdit" };
 
 export type DocumentDispatchAction = DocumentAction | HistoryAction;
 

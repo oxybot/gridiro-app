@@ -83,6 +83,7 @@ export function Canvas() {
       ? { x: (element as Surface).x1, y: (element as Surface).y1 }
       : { x: (element as Node | TextElement).x, y: (element as Node | TextElement).y };
     event.currentTarget.setPointerCapture(event.pointerId);
+    dispatchDocument({ type: "startMove" });
     dispatchView({ type: "setDragging", dragging: { kind, id: element.id, pointerOffset: { x: gridPosition.x - origin.x, y: gridPosition.y - origin.y } } });
     dispatchView({ type: "setSelectedSurface", surfaceId: kind === "surface" ? element.id : null });
     closeMenu();
@@ -100,20 +101,21 @@ export function Canvas() {
     if (dragging.kind === "node") {
       const node = documentState.nodes.find((currentNode) => currentNode.id === dragging.id);
       if (node && node.x === snappedPoint.x && node.y === snappedPoint.y) return;
-      dispatchDocument({ type: "moveNode", nodeId: dragging.id, position: snappedPoint });
+      dispatchDocument({ type: "previewMoveNode", nodeId: dragging.id, position: snappedPoint });
     } else if (dragging.kind === "text") {
       const text = documentState.texts.find((currentText) => currentText.id === dragging.id);
       if (text && text.x === snappedPoint.x && text.y === snappedPoint.y) return;
-      dispatchDocument({ type: "moveText", textId: dragging.id, position: snappedPoint });
+      dispatchDocument({ type: "previewMoveText", textId: dragging.id, position: snappedPoint });
     } else {
       const surface = documentState.surfaces.find((currentSurface) => currentSurface.id === dragging.id);
       if (surface && surface.x1 === snappedPoint.x && surface.y1 === snappedPoint.y) return;
-      dispatchDocument({ type: "moveSurface", surfaceId: dragging.id, position: snappedPoint });
+      dispatchDocument({ type: "previewMoveSurface", surfaceId: dragging.id, position: snappedPoint });
     }
   };
 
   const handleElementPointerUp = (event: PointerEvent<SVGGraphicsElement>) => {
     event.currentTarget.releasePointerCapture(event.pointerId);
+    dispatchDocument({ type: "finishMove" });
     dispatchView({ type: "setDragging", dragging: null });
   };
 

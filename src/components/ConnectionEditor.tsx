@@ -11,7 +11,7 @@ export function ConnectionEditor({ connection }: ConnectionEditorProps) {
   const dispatchDocument = useDocumentDispatch();
   const updateConnection = (changes: Partial<Connection>) => {
     dispatchView({ type: "setEditing", editing: { kind: "connection", connection: { ...connection, ...changes } } });
-    dispatchDocument({ type: "updateConnection", connectionId: connection.id, changes });
+    dispatchDocument({ type: "previewUpdateConnection", connectionId: connection.id, changes });
   };
 
   return (
@@ -25,6 +25,8 @@ export function ConnectionEditor({ connection }: ConnectionEditorProps) {
         <input
           type="text"
           value={connection.label}
+          onFocus={() => dispatchDocument({ type: "startEdit" })}
+          onBlur={() => dispatchDocument({ type: "finishEdit" })}
           onChange={(event) => updateConnection({ label: event.target.value })}
         />
       </label>

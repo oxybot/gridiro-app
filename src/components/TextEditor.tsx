@@ -12,7 +12,7 @@ export function TextEditor({ text }: TextEditorProps) {
   const dispatchDocument = useDocumentDispatch();
   const updateText = (changes: Partial<TextElement>) => {
     dispatchView({ type: "setEditing", editing: { kind: "text", text: { ...text, ...changes } } });
-    dispatchDocument({ type: "updateText", textId: text.id, changes });
+    dispatchDocument({ type: "previewUpdateText", textId: text.id, changes });
   };
 
   return (
@@ -26,6 +26,8 @@ export function TextEditor({ text }: TextEditorProps) {
         <input
           type="text"
           value={text.content}
+            onFocus={() => dispatchDocument({ type: "startEdit" })}
+            onBlur={() => dispatchDocument({ type: "finishEdit" })}
           onChange={(event) => updateText({ content: event.target.value })}
         />
       </label>

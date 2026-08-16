@@ -12,7 +12,7 @@ export function NodeEditor({ node }: NodeEditorProps) {
   const dispatchDocument = useDocumentDispatch();
   const updateNode = (changes: Partial<Node>) => {
     dispatchView({ type: "setEditing", editing: { kind: "node", node: { ...node, ...changes } } });
-    dispatchDocument({ type: "updateNode", nodeId: node.id, changes });
+    dispatchDocument({ type: "previewUpdateNode", nodeId: node.id, changes });
   };
 
   return (
@@ -26,6 +26,8 @@ export function NodeEditor({ node }: NodeEditorProps) {
         <input
           type="text"
           value={node.label}
+            onFocus={() => dispatchDocument({ type: "startEdit" })}
+            onBlur={() => dispatchDocument({ type: "finishEdit" })}
           onChange={(event) => updateNode({ label: event.target.value })}
         />
       </label>

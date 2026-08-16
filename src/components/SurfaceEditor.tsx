@@ -11,7 +11,7 @@ export function SurfaceEditor({ surface }: SurfaceEditorProps) {
   const dispatchDocument = useDocumentDispatch();
   const updateSurface = (changes: Partial<Surface>) => {
     dispatchView({ type: "setEditing", editing: { kind: "surface", surface: { ...surface, ...changes } } });
-    dispatchDocument({ type: "updateSurface", surfaceId: surface.id, changes });
+    dispatchDocument({ type: "previewUpdateSurface", surfaceId: surface.id, changes });
   };
 
   return (
@@ -25,6 +25,8 @@ export function SurfaceEditor({ surface }: SurfaceEditorProps) {
         <input
           type="text"
           value={surface.label}
+          onFocus={() => dispatchDocument({ type: "startEdit" })}
+          onBlur={() => dispatchDocument({ type: "finishEdit" })}
           onChange={(event) => updateSurface({ label: event.target.value })}
         />
       </label>

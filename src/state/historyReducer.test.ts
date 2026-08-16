@@ -36,6 +36,32 @@ describe("historyReducer", () => {
     expect(changed.future).toEqual([]);
   });
 
+  it("records a drag as one history entry after preview updates", () => {
+    const initial = createDocumentHistory({ ...emptyDocument, nodes: [node("node-1")] });
+    const started = historyReducer(initial, { type: "startMove" });
+    const previewed = historyReducer(started, { type: "previewMoveNode", nodeId: "node-1", position: { x: 80, y: 50 } });
+    const previewedAgain = historyReducer(previewed, { type: "previewMoveNode", nodeId: "node-1", position: { x: 160, y: 100 } });
+    const finished = historyReducer(previewedAgain, { type: "finishMove" });
+    const undone = historyReducer(finished, { type: "undo" });
+
+    expect(previewedAgain.past).toHaveLength(0);
+    expect(finished.past).toEqual([initial.present]);
+    expect(undone.present).toEqual(initial.present);
+  });
+
+  it("records a text edit as one history entry after preview updates", () => {
+    const initial = createDocumentHistory({ ...emptyDocument, nodes: [node("node-1")] });
+    const started = historyReducer(initial, { type: "startEdit" });
+    const previewed = historyReducer(started, { type: "previewUpdateNode", nodeId: "node-1", changes: { label: "N" } });
+    const previewedAgain = historyReducer(previewed, { type: "previewUpdateNode", nodeId: "node-1", changes: { label: "Node" } });
+    const finished = historyReducer(previewedAgain, { type: "finishEdit" });
+    const undone = historyReducer(finished, { type: "undo" });
+
+    expect(previewedAgain.past).toHaveLength(0);
+    expect(finished.past).toEqual([initial.present]);
+    expect(undone.present).toEqual(initial.present);
+  });
+
   it("caps past history at the configured maximum", () => {
     let history = createDocumentHistory(emptyDocument);
     for (let index = 0; index < maxHistoryLength + 5; index += 1) {
