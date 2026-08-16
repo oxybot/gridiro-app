@@ -31,7 +31,7 @@ export function NodeEditor({ node }: NodeEditorProps) {
       </label>
       <fieldset>
         <legend>Icon</legend>
-        <div className="icon-options">
+        <div className="options">
           {isoflowIcons.icons.map((icon) => (
             <button
               className={node.icon.id === icon.id ? "selected" : ""}

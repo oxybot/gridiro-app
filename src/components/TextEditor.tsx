@@ -31,7 +31,7 @@ export function TextEditor({ text }: TextEditorProps) {
       </label>
       <fieldset>
         <legend>Orientation</legend>
-        <div className="orientation-options">
+        <div className="options">
           {(["horizontal", "vertical"] as TextOrientation[]).map((orientation) => (
             <button
               className={text.orientation === orientation ? "selected" : ""}
@@ -58,7 +58,7 @@ export function TextEditor({ text }: TextEditorProps) {
       </fieldset>
       <fieldset>
         <legend>Size</legend>
-        <div className="size-options">
+        <div className="options options-align-end">
           {(["small", "medium", "large"] as TextSize[]).map((size) => (
             <button
               className={text.size === size ? "selected" : ""}

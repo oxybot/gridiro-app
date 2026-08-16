@@ -30,7 +30,7 @@ export function SurfaceEditor({ surface }: SurfaceEditorProps) {
       </label>
       <fieldset>
         <legend>Background color</legend>
-        <div className="color-options">
+        <div className="options options-color">
           {(["gray", "blue", "green", "yellow", "red"] as ElementColor[]).map((color) => (
             <button
               className={surface.backgroundColor === color ? "selected" : ""}

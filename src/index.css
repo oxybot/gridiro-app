@@ -115,13 +115,7 @@ section {
       font-size: var(--font-size-4);
     }
 
-    rect.node-label-bg {
-      fill: var(--gray-0);
-      stroke: var(--gray-4);
-      stroke-width: 1;
-      rx: var(--radius-2);
-    }
-
+    rect.node-label-bg,
     rect.text-label-bg {
       fill: var(--gray-0);
       stroke: var(--gray-4);
@@ -129,7 +123,8 @@ section {
       rx: var(--radius-2);
     }
 
-    line.node-label-line {
+    line.node-label-line,
+    .surface-label-line {
       stroke: var(--gray-12);
       stroke-width: 1;
     }
@@ -149,11 +144,6 @@ section {
     .surface-label {
       font-size: var(--font-size-4);
       fill: var(--gray-9);
-    }
-
-    .surface-label-line {
-      stroke: var(--gray-12);
-      stroke-width: 1;
     }
 
     .surface-handle {
@@ -310,77 +300,38 @@ section {
     }
   }
 
-  .icon-options {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, var(--size-8));
-    gap: var(--size-1);
-
-    button {
-      min-width: var(--size-8);
-      min-height: var(--size-8);
-    }
-  }
-
-  .color-options {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: var(--size-1);
-
-    button {
-      aspect-ratio: 1;
-      border: var(--border-size-1) var(--gray-4) solid;
-      border-radius: var(--radius-round);
-      cursor: pointer;
-
-      &:hover,
-      &.selected {
-        border-color: var(--blue-6);
-        outline: var(--border-size-2) solid var(--blue-2);
-      }
-    }
-  }
-
-  .orientation-options {
+  .options {
     display: flex;
+    flex-wrap: wrap;
     gap: var(--size-1);
 
     button {
       min-width: var(--size-8);
       min-height: var(--size-8);
       padding: var(--size-1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
       svg {
         width: auto;
         height: auto;
       }
     }
-  }
 
-  .connection-style-options {
-    display: flex;
-    gap: var(--size-1);
-
-    button {
-      min-width: var(--size-8);
-      min-height: var(--size-8);
-      padding: var(--size-1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    &.options-align-end {
+      align-items: flex-end;
     }
-  }
 
-  .size-options {
-    display: flex;
-    align-items: flex-end;
-    gap: var(--size-1);
+    &.options-color button {
+      aspect-ratio: 1;
+      border: var(--border-size-1) var(--gray-4) solid;
+      border-radius: var(--radius-round);
 
-    button {
-      min-width: var(--size-8);
-      min-height: var(--size-8);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      &:hover,
+      &.selected {
+        outline: var(--border-size-2) solid var(--blue-2);
+      }
     }
 
     .size-preview {
@@ -399,13 +350,6 @@ section {
     .size-preview-large {
       font-size: var(--font-size-4);
     }
-  }
-
-  .radio-option {
-    display: flex;
-    align-items: center;
-    gap: var(--size-1);
-    text-transform: capitalize;
   }
 
   .close-editor {

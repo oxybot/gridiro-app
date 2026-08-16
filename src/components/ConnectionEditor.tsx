@@ -30,7 +30,7 @@ export function ConnectionEditor({ connection }: ConnectionEditorProps) {
       </label>
       <fieldset>
         <legend>Color</legend>
-        <div className="color-options">
+        <div className="options options-color">
           {(["gray", "blue", "green", "yellow", "red"] as ElementColor[]).map((color) => (
             <button
               className={connection.color === color ? "selected" : ""}
@@ -45,7 +45,7 @@ export function ConnectionEditor({ connection }: ConnectionEditorProps) {
       </fieldset>
       <fieldset>
         <legend>Style</legend>
-        <div className="connection-style-options">
+        <div className="options">
           {(["solid", "dashed"] as ConnectionStyle[]).map((style) => (
             <button
               className={connection.style === style ? "selected" : ""}
