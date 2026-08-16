@@ -4,6 +4,7 @@ import type { AppAction, EditingElement, MenuState, Node, Point, Surface, Surfac
 import { createNode } from "../diagramNode";
 import { createText } from "../diagramText";
 import { createSurface } from "../diagramSurface";
+import { grid } from "../diagramGeometry";
 
 type DiagramOverlaysProps = {
   menu: MenuState;
@@ -119,31 +120,46 @@ export function DiagramOverlays({
           </label>
           <fieldset>
             <legend>Orientation</legend>
-            {(["horizontal", "vertical"] as TextOrientation[]).map((orientation) => (
-              <label className="radio-option" key={orientation}>
-                <input
-                  type="radio"
-                  name="text-orientation"
-                  checked={editingText.orientation === orientation}
-                  onChange={() => updateEditingText({ orientation })}
-                />
-                {orientation}
-              </label>
-            ))}
+            <div className="orientation-options">
+              {(["horizontal", "vertical"] as TextOrientation[]).map((orientation) => (
+                <button
+                  className={editingText.orientation === orientation ? "selected" : ""}
+                  type="button"
+                  key={orientation}
+                  onClick={() => updateEditingText({ orientation })}
+                  aria-label={`Select ${orientation} orientation`}
+                >
+                  <svg viewBox="0 0 24 20" width="48" height="40">
+                    <g transform={`translate(12, 10) scale(1 ${grid.height / grid.width}) rotate(${orientation === "horizontal" ? 45 : -45})`}>
+                      <text
+                        textAnchor="middle"
+                        alignmentBaseline="middle"
+                        fontSize="10"
+                        fill="var(--gray-9)"
+                      >
+                        Text
+                      </text>
+                    </g>
+                  </svg>
+                </button>
+              ))}
+            </div>
           </fieldset>
           <fieldset>
             <legend>Size</legend>
-            {(["small", "medium", "large"] as TextSize[]).map((size) => (
-              <label className="radio-option" key={size}>
-                <input
-                  type="radio"
-                  name="text-size"
-                  checked={editingText.size === size}
-                  onChange={() => updateEditingText({ size })}
-                />
-                {size}
-              </label>
-            ))}
+            <div className="size-options">
+              {(["small", "medium", "large"] as TextSize[]).map((size) => (
+                <button
+                  className={editingText.size === size ? "selected" : ""}
+                  type="button"
+                  key={size}
+                  onClick={() => updateEditingText({ size })}
+                  aria-label={`Select ${size} size`}
+                >
+                  <span className={`size-preview size-preview-${size}`}>{size === "small" ? "S" : size === "medium" ? "M" : "L"}</span>
+                </button>
+              ))}
+            </div>
           </fieldset>
         </aside>
       )}
@@ -163,7 +179,7 @@ export function DiagramOverlays({
           </label>
           <fieldset>
             <legend>Background color</legend>
-            <div className="surface-color-options">
+            <div className="color-options">
               {(["gray", "blue", "green", "yellow", "red"] as SurfaceColor[]).map((color) => (
                 <button
                   className={editingSurface.backgroundColor === color ? "selected" : ""}
@@ -172,9 +188,7 @@ export function DiagramOverlays({
                   onClick={() => updateEditingSurface({ backgroundColor: color })}
                   style={{ backgroundColor: color }}
                   aria-label={`Select ${color} background`}
-                >
-                  {color}
-                </button>
+                ></button>
               ))}
             </div>
           </fieldset>
