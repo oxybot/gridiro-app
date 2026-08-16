@@ -249,7 +249,7 @@ section {
   }
 }
 
-.node-editor {
+.editor {
   position: absolute;
   inset: var(--size-3) var(--size-3) var(--size-3) auto;
   z-index: var(--layer-3);
@@ -260,7 +260,7 @@ section {
   background-color: var(--gray-0);
   box-shadow: var(--shadow-3);
 
-  .node-editor-header {
+  .editor-header {
     display: flex;
     align-items: center;
     justify-content: space-between;

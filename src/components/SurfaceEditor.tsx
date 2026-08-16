@@ -15,8 +15,8 @@ export function SurfaceEditor({ surface }: SurfaceEditorProps) {
   };
 
   return (
-    <aside className="node-editor" onClick={(event: MouseEvent<HTMLElement>) => event.stopPropagation()}>
-      <div className="node-editor-header">
+    <aside className="editor" onClick={(event: MouseEvent<HTMLElement>) => event.stopPropagation()}>
+      <div className="editor-header">
         <h2>Edit surface</h2>
         <button className="close-editor" type="button" onClick={() => dispatchView({ type: "setEditing", editing: null })} aria-label="Close editor">×</button>
       </div>
