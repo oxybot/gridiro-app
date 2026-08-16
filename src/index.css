@@ -11,6 +11,10 @@ section {
   margin: var(--size-2) var(--size-4);
 }
 
+button {
+  cursor: pointer;
+}
+
 .zoom-controls,
 .diagram-menu,
 .editor {
@@ -190,7 +194,6 @@ section {
     border-radius: var(--radius-1);
     background: transparent;
     font-size: var(--font-size-2);
-    cursor: pointer;
 
     &:hover:not(:disabled) {
       background-color: var(--gray-2);
@@ -223,7 +226,6 @@ section {
     text-align: left;
     border-radius: var(--radius-2);
     padding: 0.35rem 0.55rem;
-    cursor: pointer;
 
     &:hover {
       background-color: var(--gray-2);
@@ -278,7 +280,6 @@ section {
     border: var(--border-size-1) transparent solid;
     border-radius: var(--radius-1);
     background: transparent;
-    cursor: pointer;
 
     &:hover,
     &.selected {
