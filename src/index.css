@@ -152,6 +152,46 @@ section {
   }
 }
 
+.zoom-controls {
+  position: absolute;
+  z-index: var(--layer-1);
+  right: var(--size-3);
+  bottom: var(--size-3);
+  display: flex;
+  align-items: center;
+  gap: var(--size-2);
+  padding: var(--size-1) var(--size-2);
+  border: var(--border-size-2) var(--gray-4) solid;
+  border-radius: var(--radius-2);
+  background-color: var(--gray-0);
+  box-shadow: var(--shadow-3);
+  font-size: var(--font-size-1);
+
+  span {
+    min-width: 2.5em;
+    text-align: center;
+  }
+
+  button {
+    min-width: var(--size-7);
+    min-height: var(--size-7);
+    border: none;
+    border-radius: var(--radius-1);
+    background: transparent;
+    font-size: var(--font-size-2);
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      background-color: var(--gray-2);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+  }
+}
+
 .diagram-menu {
   position: absolute;
   z-index: var(--layer-1);

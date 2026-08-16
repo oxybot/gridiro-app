@@ -5,7 +5,7 @@ import { DiagramSurface } from "./DiagramSurface";
 import { DiagramConnection } from "./DiagramConnection";
 import type { AppAction, AppState, Node, Surface, SurfaceCorner, TextElement } from "../model/types";
 import { createNode } from "../model/node";
-import { grid, midHeight, midWidth, snapToIsoGrid } from "../model/geometry";
+import { grid, midHeight, midWidth, snapToIsoGrid, zoomLevels } from "../model/geometry";
 
 export type DiagramCanvasProps = {
   state: AppState;
@@ -16,6 +16,8 @@ export function DiagramCanvas({
   state,
   dispatch,
 }: DiagramCanvasProps) {
+  const zoom = zoomLevels[state.zoomIndex];
+
   const getPointerPosition = (event: PointerEvent<SVGElement>) => {
     const svg = event.currentTarget.ownerSVGElement;
     if (!svg) {
@@ -28,12 +30,12 @@ export function DiagramCanvas({
 
   const getGridPosition = (event: PointerEvent<SVGElement>) => {
     const pointerPosition = getPointerPosition(event);
-    return pointerPosition ? { x: pointerPosition.x - state.pan.x, y: pointerPosition.y - state.pan.y } : null;
+    return pointerPosition ? { x: (pointerPosition.x - state.pan.x) / zoom, y: (pointerPosition.y - state.pan.y) / zoom } : null;
   };
 
   const handleMouseMove = (event: MouseEvent<SVGSVGElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
-    const position = { x: event.clientX - rect.left - state.pan.x, y: event.clientY - rect.top - state.pan.y };
+    const position = { x: (event.clientX - rect.left - state.pan.x) / zoom, y: (event.clientY - rect.top - state.pan.y) / zoom };
     dispatch({ type: "setHoverPos", position: snapToIsoGrid(position) });
     if (state.connectionDraft) {
       dispatch({ type: "setConnectionDraft", connectionDraft: { ...state.connectionDraft, pointerPosition: position } });
@@ -189,8 +191,8 @@ export function DiagramCanvas({
     event.stopPropagation();
     const rect = event.currentTarget.getBoundingClientRect();
     const snappedPoint = snapToIsoGrid({
-      x: event.clientX - rect.left - state.pan.x,
-      y: event.clientY - rect.top - state.pan.y,
+      x: (event.clientX - rect.left - state.pan.x) / zoom,
+      y: (event.clientY - rect.top - state.pan.y) / zoom,
     });
     const node = state.nodes.find((currentNode) => currentNode.x === snappedPoint.x && currentNode.y === snappedPoint.y);
     const text = !node ? state.texts.find((currentText) => currentText.x === snappedPoint.x && currentText.y === snappedPoint.y) : undefined;
@@ -214,8 +216,8 @@ export function DiagramCanvas({
     event.preventDefault();
     event.stopPropagation();
     const rect = event.currentTarget.ownerSVGElement?.getBoundingClientRect();
-    const localX = event.clientX - (rect?.left ?? 0) - state.pan.x;
-    const localY = event.clientY - (rect?.top ?? 0) - state.pan.y;
+    const localX = (event.clientX - (rect?.left ?? 0) - state.pan.x) / zoom;
+    const localY = (event.clientY - (rect?.top ?? 0) - state.pan.y) / zoom;
     dispatch({ type: "setEditing", editing: null });
     dispatch({ type: "setSelectedSurface", surfaceId: surface.id });
     dispatch({
@@ -233,8 +235,8 @@ export function DiagramCanvas({
   const handleDoubleClick = (event: MouseEvent<SVGSVGElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const snappedPoint = snapToIsoGrid({
-      x: event.clientX - rect.left - state.pan.x,
-      y: event.clientY - rect.top - state.pan.y,
+      x: (event.clientX - rect.left - state.pan.x) / zoom,
+      y: (event.clientY - rect.top - state.pan.y) / zoom,
     });
     const hasElement = state.nodes.some((node) => node.x === snappedPoint.x && node.y === snappedPoint.y)
       || state.texts.some((text) => text.x === snappedPoint.x && text.y === snappedPoint.y);
@@ -261,7 +263,7 @@ export function DiagramCanvas({
           width={grid.width}
           height={grid.height}
           patternUnits="userSpaceOnUse"
-          patternTransform={`translate(${state.pan.x} ${state.pan.y})`}
+          patternTransform={`translate(${state.pan.x} ${state.pan.y}) scale(${zoom})`}
         >
           <path className="grid" d={`M 0 ${midHeight} L ${midWidth} 0 ${grid.width} ${midHeight} ${midWidth} ${grid.height} 0 ${midHeight}`} />
         </pattern>
@@ -276,7 +278,7 @@ export function DiagramCanvas({
         onPointerUp={handleGridPointerUp}
       />
 
-      <g transform={`translate(${state.pan.x} ${state.pan.y})`}>
+      <g transform={`translate(${state.pan.x} ${state.pan.y}) scale(${zoom})`}>
         <path
           className="hover"
           d={`M 0 ${midHeight} L ${midWidth} 0 ${grid.width} ${midHeight} ${midWidth} ${grid.height} 0 ${midHeight}`}

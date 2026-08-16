@@ -95,6 +95,7 @@ export type AppState = {
   selectedSurfaceId: string | null;
   pan: Point;
   panning: PanState | null;
+  zoomIndex: number;
   connectionDraft: ConnectionDraft | null;
   menu: MenuState;
   editing: EditingElement | null;
@@ -122,6 +123,8 @@ export type AppAction =
   | { type: "setDragging"; dragging: DraggingElement | null }
   | { type: "setPan"; pan: Point }
   | { type: "setPanning"; panning: PanState | null }
+  | { type: "zoomIn"; center: Point }
+  | { type: "zoomOut"; center: Point }
   | { type: "setConnectionDraft"; connectionDraft: ConnectionDraft | null }
   | { type: "setMenu"; menu: MenuState }
   | { type: "closeMenu" }

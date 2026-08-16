@@ -8,6 +8,10 @@ export const grid = {
 export const midWidth = grid.width / 2;
 export const midHeight = grid.height / 2;
 
+// Three zoom levels; index 1 is the default 100% level.
+export const zoomLevels = [0.75, 1, 1.5];
+export const defaultZoomIndex = 1;
+
 export const snapToIsoGrid = (local: Point): Point => {
   const offsetX = local.x - midWidth;
   const offsetY = local.y - midHeight;

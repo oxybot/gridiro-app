@@ -1,5 +1,6 @@
 import { useEffect, useReducer, type Dispatch } from "react";
-import type { AppAction, AppState } from "./model/types";
+import type { AppAction, AppState, Point } from "./model/types";
+import { defaultZoomIndex, zoomLevels } from "./model/geometry";
 
 const diagramStorageKey = "gridiro-diagram";
 
@@ -34,6 +35,7 @@ const createInitialState = (): AppState => ({
   selectedSurfaceId: null,
   pan: { x: 0, y: 0 },
   panning: null,
+  zoomIndex: defaultZoomIndex,
   connectionDraft: null,
   menu: {
     isOpen: false,
@@ -44,6 +46,22 @@ const createInitialState = (): AppState => ({
   },
   editing: null,
 });
+
+// Keeps the grid point under `center` fixed on screen while changing zoom level.
+const zoomToIndex = (state: AppState, index: number, center: Point): AppState => {
+  const zoomIndex = Math.max(0, Math.min(index, zoomLevels.length - 1));
+  if (zoomIndex === state.zoomIndex) return state;
+
+  const scaleRatio = zoomLevels[zoomIndex] / zoomLevels[state.zoomIndex];
+  return {
+    ...state,
+    zoomIndex,
+    pan: {
+      x: center.x - (center.x - state.pan.x) * scaleRatio,
+      y: center.y - (center.y - state.pan.y) * scaleRatio,
+    },
+  };
+};
 
 const appReducer = (state: AppState, action: AppAction): AppState => {
   switch (action.type) {
@@ -105,6 +123,10 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       return { ...state, pan: action.pan };
     case "setPanning":
       return { ...state, panning: action.panning };
+    case "zoomIn":
+      return zoomToIndex(state, state.zoomIndex + 1, action.center);
+    case "zoomOut":
+      return zoomToIndex(state, state.zoomIndex - 1, action.center);
     case "setConnectionDraft":
       return { ...state, connectionDraft: action.connectionDraft };
     case "setMenu":
