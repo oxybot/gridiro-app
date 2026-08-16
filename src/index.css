@@ -11,6 +11,28 @@ section {
   margin: var(--size-2) var(--size-4);
 }
 
+.zoom-controls,
+.diagram-menu,
+.editor {
+  position: absolute;
+  border: var(--border-size-2) var(--gray-4) solid;
+  border-radius: var(--radius-2);
+  background-color: var(--gray-0);
+  box-shadow: var(--shadow-3);
+}
+
+.text-size-small {
+  font-size: var(--font-size-0);
+}
+
+.text-size-medium {
+  font-size: var(--font-size-2);
+}
+
+.text-size-large {
+  font-size: var(--font-size-4);
+}
+
 .diagram {
   flex: 1;
   position: relative;
@@ -29,7 +51,9 @@ section {
       stroke-width: 0.5;
     }
 
-    rect.grid-surface {
+    rect.grid-surface,
+    path.surface,
+    .drag-handle {
       cursor: grab;
 
       &:active {
@@ -103,18 +127,6 @@ section {
       fill: var(--gray-9);
     }
 
-    text.text-label-small {
-      font-size: var(--font-size-0);
-    }
-
-    text.text-label-medium {
-      font-size: var(--font-size-2);
-    }
-
-    text.text-label-large {
-      font-size: var(--font-size-4);
-    }
-
     rect.node-label-bg,
     rect.text-label-bg {
       fill: var(--gray-0);
@@ -134,11 +146,6 @@ section {
       stroke: var(--gray-9);
       stroke-width: 1;
       pointer-events: all;
-      cursor: grab;
-
-      &:active {
-        cursor: grabbing;
-      }
     }
 
     .surface-label {
@@ -157,17 +164,11 @@ section {
     .drag-handle {
       fill: transparent;
       pointer-events: all;
-      cursor: grab;
-
-      &:active {
-        cursor: grabbing;
-      }
     }
   }
 }
 
 .zoom-controls {
-  position: absolute;
   z-index: var(--layer-1);
   right: var(--size-3);
   bottom: var(--size-3);
@@ -175,10 +176,6 @@ section {
   align-items: center;
   gap: var(--size-2);
   padding: var(--size-1) var(--size-2);
-  border: var(--border-size-2) var(--gray-4) solid;
-  border-radius: var(--radius-2);
-  background-color: var(--gray-0);
-  box-shadow: var(--shadow-3);
   font-size: var(--font-size-1);
 
   span {
@@ -207,15 +204,10 @@ section {
 }
 
 .diagram-menu {
-  position: absolute;
   z-index: var(--layer-1);
   display: grid;
   gap: var(--size-1);
   padding: var(--size-2);
-  border: var(--border-size-2) var(--gray-4) solid;
-  border-radius: var(--radius-2);
-  background-color: var(--gray-0);
-  box-shadow: var(--shadow-3);
 
   &.left {
     transform: translate(var(--size-5), -50%);
@@ -240,15 +232,10 @@ section {
 }
 
 .editor {
-  position: absolute;
   inset: var(--size-3) var(--size-3) var(--size-3) auto;
   z-index: var(--layer-3);
   width: min(16rem, calc(100% - var(--size-6)));
   padding: var(--size-3);
-  border: var(--border-size-2) var(--gray-4) solid;
-  border-radius: var(--radius-2);
-  background-color: var(--gray-0);
-  box-shadow: var(--shadow-3);
 
   .editor-header {
     display: flex;
@@ -337,18 +324,6 @@ section {
     .size-preview {
       line-height: 1;
       color: var(--gray-9);
-    }
-
-    .size-preview-small {
-      font-size: var(--font-size-0);
-    }
-
-    .size-preview-medium {
-      font-size: var(--font-size-2);
-    }
-
-    .size-preview-large {
-      font-size: var(--font-size-4);
     }
   }
 

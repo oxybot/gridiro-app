@@ -67,7 +67,7 @@ export function TextEditor({ text }: TextEditorProps) {
               onClick={() => updateText({ size })}
               aria-label={`Select ${size} size`}
             >
-              <span className={`size-preview size-preview-${size}`}>{size === "small" ? "S" : size === "medium" ? "M" : "L"}</span>
+              <span className={`size-preview text-size-${size}`}>{size === "small" ? "S" : size === "medium" ? "M" : "L"}</span>
             </button>
           ))}
         </div>

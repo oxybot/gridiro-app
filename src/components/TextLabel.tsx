@@ -36,7 +36,7 @@ export function TextLabel({ text, selected, onPointerDown, onPointerMove, onPoin
         height={box.height + textPaddingY * 2}
       />
       <text ref={textRef}
-        className={`text-label text-label-${text.size}`}
+        className={`text-label text-size-${text.size}`}
         x="0" y="0">
         {text.content}
       </text>
