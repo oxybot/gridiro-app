@@ -52,7 +52,6 @@ section {
       transition: opacity 160ms ease-out;
     }
 
-    line.connection,
     path.connection {
       stroke: var(--blue-9);
       stroke-width: 3;
@@ -62,6 +61,31 @@ section {
       &.draft {
         stroke-dasharray: 5 4;
       }
+
+      &.dashed {
+        stroke-dasharray: 8 6;
+      }
+
+      &.selected {
+        stroke-width: 5;
+        opacity: 0.7;
+      }
+    }
+
+    path.connection-hit {
+      stroke: transparent;
+      stroke-width: 14;
+      fill: none;
+      pointer-events: stroke;
+      cursor: context-menu;
+    }
+
+    text.connection-label {
+      font-size: var(--font-size-0);
+      fill: var(--gray-9);
+      paint-order: stroke;
+      stroke: var(--gray-0);
+      stroke-width: 3;
     }
 
     text {
@@ -329,6 +353,20 @@ section {
         width: auto;
         height: auto;
       }
+    }
+  }
+
+  .connection-style-options {
+    display: flex;
+    gap: var(--size-1);
+
+    button {
+      min-width: var(--size-8);
+      min-height: var(--size-8);
+      padding: var(--size-1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
   }
 

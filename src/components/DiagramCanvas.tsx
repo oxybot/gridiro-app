@@ -3,8 +3,9 @@ import { NodeLabel } from "./NodeLabel";
 import { DiagramTextLabel } from "./DiagramTextLabel";
 import { DiagramSurface } from "./DiagramSurface";
 import { DiagramConnection } from "./DiagramConnection";
-import type { AppAction, AppState, Node, Surface, SurfaceCorner, TextElement } from "../model/types";
+import type { AppAction, AppState, Connection, Node, Surface, SurfaceCorner, TextElement } from "../model/types";
 import { createNode } from "../model/node";
+import { createConnection } from "../model/connection";
 import { grid, midHeight, midWidth, snapToIsoGrid, zoomLevels } from "../model/geometry";
 
 export type DiagramCanvasProps = {
@@ -162,7 +163,7 @@ export function DiagramCanvas({
       || (connection.sourceId === node.id && connection.targetId === connectionDraft.sourceId),
     );
     if (!connectionExists) {
-      dispatch({ type: "addConnection", connection: { sourceId: connectionDraft.sourceId, targetId: node.id } });
+      dispatch({ type: "addConnection", connection: createConnection(connectionDraft.sourceId, node.id) });
     }
     dispatch({ type: "setConnectionDraft", connectionDraft: null });
   };
@@ -228,6 +229,26 @@ export function DiagramCanvas({
         side: rect && localX > 2 * rect.width / 3 ? "right" : "left",
         kind: "surface",
         surface,
+      }
+    });
+  };
+
+  // Right-clicking a connection opens its own menu instead of the empty-cell menu.
+  const handleConnectionContextMenu = (event: MouseEvent<SVGPathElement>, connection: Connection) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const rect = event.currentTarget.ownerSVGElement?.getBoundingClientRect();
+    const localX = (event.clientX - (rect?.left ?? 0) - state.pan.x) / zoom;
+    const localY = (event.clientY - (rect?.top ?? 0) - state.pan.y) / zoom;
+    dispatch({ type: "setEditing", editing: null });
+    dispatch({
+      type: "setMenu", menu: {
+        isOpen: true,
+        x: localX,
+        y: localY,
+        side: rect && localX > 2 * rect.width / 3 ? "right" : "left",
+        kind: "connection",
+        connection,
       }
     });
   };
@@ -311,9 +332,14 @@ export function DiagramCanvas({
 
           return (
             <DiagramConnection
-              key={`${connection.sourceId}-${connection.targetId}`}
+              key={connection.id}
               source={source}
               target={target}
+              color={connection.color}
+              dashed={connection.style === "dashed"}
+              label={connection.label}
+              selected={(state.menu.isOpen && state.menu.kind === "connection" && state.menu.connection?.id === connection.id) || (state.editing?.kind === "connection" && state.editing.connection.id === connection.id)}
+              onContextMenu={(event) => handleConnectionContextMenu(event, connection)}
             />
           );
         })}

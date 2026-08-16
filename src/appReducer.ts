@@ -113,6 +113,10 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       return { ...state, resizingSurface: action.resizingSurface };
     case "addConnection":
       return { ...state, connections: [...state.connections, action.connection] };
+    case "updateConnection":
+      return { ...state, connections: state.connections.map((connection) => connection.id === action.connectionId ? { ...connection, ...action.changes } : connection) };
+    case "removeConnection":
+      return { ...state, connections: state.connections.filter((connection) => connection.id !== action.connectionId) };
     case "setHoverPos":
       return { ...state, hoverPos: action.position };
     case "setHovering":

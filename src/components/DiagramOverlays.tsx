@@ -1,6 +1,6 @@
 import type { Dispatch, MouseEvent } from "react";
 import { isoflowIcons } from "../assets/isoflowIcons";
-import type { AppAction, EditingElement, MenuState, Node, Point, Surface, SurfaceColor, TextElement, TextOrientation, TextSize } from "../model/types";
+import type { AppAction, Connection, ConnectionStyle, EditingElement, ElementColor, MenuState, Node, Point, Surface, TextElement, TextOrientation, TextSize } from "../model/types";
 import { createNode } from "../model/node";
 import { createText } from "../model/text";
 import { createSurface } from "../model/surface";
@@ -25,6 +25,7 @@ export function DiagramOverlays({
   const editingNode = editing?.kind === "node" ? editing.node : null;
   const editingText = editing?.kind === "text" ? editing.text : null;
   const editingSurface = editing?.kind === "surface" ? editing.surface : null;
+  const editingConnection = editing?.kind === "connection" ? editing.connection : null;
   const updateEditingNode = (changes: Partial<Node>) => {
     if (!editingNode) return;
     dispatch({ type: "setEditing", editing: { kind: "node", node: { ...editingNode, ...changes } } });
@@ -39,6 +40,11 @@ export function DiagramOverlays({
     if (!editingSurface) return;
     dispatch({ type: "setEditing", editing: { kind: "surface", surface: { ...editingSurface, ...changes } } });
     dispatch({ type: "updateSurface", surfaceId: editingSurface.id, changes });
+  };
+  const updateEditingConnection = (changes: Partial<Connection>) => {
+    if (!editingConnection) return;
+    dispatch({ type: "setEditing", editing: { kind: "connection", connection: { ...editingConnection, ...changes } } });
+    dispatch({ type: "updateConnection", connectionId: editingConnection.id, changes });
   };
 
   return (
@@ -66,10 +72,15 @@ export function DiagramOverlays({
               <button type="button" onClick={() => { if (menu.text) dispatch({ type: "setEditing", editing: { kind: "text", text: menu.text } }); closeMenu(); }}>Edit text</button>
               <button type="button" onClick={() => { if (menu.text) dispatch({ type: "removeText", textId: menu.text.id }); closeMenu(); }}>Remove text</button>
             </>
-          ) : (
+          ) : menu.kind === "surface" ? (
             <>
               <button type="button" onClick={() => { if (menu.surface) dispatch({ type: "setEditing", editing: { kind: "surface", surface: menu.surface } }); closeMenu(); }}>Edit surface</button>
               <button type="button" onClick={() => { if (menu.surface) dispatch({ type: "removeSurface", surfaceId: menu.surface.id }); closeMenu(); }}>Remove surface</button>
+            </>
+          ) : (
+            <>
+              <button type="button" onClick={() => { if (menu.connection) dispatch({ type: "setEditing", editing: { kind: "connection", connection: menu.connection } }); closeMenu(); }}>Edit connection</button>
+              <button type="button" onClick={() => { if (menu.connection) dispatch({ type: "removeConnection", connectionId: menu.connection.id }); closeMenu(); }}>Remove connection</button>
             </>
           )}
         </div>
@@ -182,7 +193,7 @@ export function DiagramOverlays({
           <fieldset>
             <legend>Background color</legend>
             <div className="color-options">
-              {(["gray", "blue", "green", "yellow", "red"] as SurfaceColor[]).map((color) => (
+              {(["gray", "blue", "green", "yellow", "red"] as ElementColor[]).map((color) => (
                 <button
                   className={editingSurface.backgroundColor === color ? "selected" : ""}
                   type="button"
@@ -202,6 +213,55 @@ export function DiagramOverlays({
             />
             Squared
           </label>
+        </aside>
+      )}
+      {editingConnection && (
+        <aside className="node-editor" onClick={(event: MouseEvent<HTMLElement>) => event.stopPropagation()}>
+          <div className="node-editor-header">
+            <h2>Edit connection</h2>
+            <button className="close-editor" type="button" onClick={() => dispatch({ type: "setEditing", editing: null })} aria-label="Close editor">×</button>
+          </div>
+          <label>
+            Label
+            <input
+              type="text"
+              value={editingConnection.label}
+              onChange={(event) => updateEditingConnection({ label: event.target.value })}
+            />
+          </label>
+          <fieldset>
+            <legend>Color</legend>
+            <div className="color-options">
+              {(["gray", "blue", "green", "yellow", "red"] as ElementColor[]).map((color) => (
+                <button
+                  className={editingConnection.color === color ? "selected" : ""}
+                  type="button"
+                  key={color}
+                  onClick={() => updateEditingConnection({ color })}
+                  style={{ backgroundColor: color }}
+                  aria-label={`Select ${color} color`}
+                ></button>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Style</legend>
+            <div className="connection-style-options">
+              {(["solid", "dashed"] as ConnectionStyle[]).map((style) => (
+                <button
+                  className={editingConnection.style === style ? "selected" : ""}
+                  type="button"
+                  key={style}
+                  onClick={() => updateEditingConnection({ style })}
+                  aria-label={`Select ${style} style`}
+                >
+                  <svg viewBox="0 0 24 24" width="48" height="24">
+                    <line x1={2} y1={12} x2={22} y2={12} stroke="var(--gray-9)" strokeWidth={2} strokeDasharray={style === "dashed" ? "4 3" : undefined} />
+                  </svg>
+                </button>
+              ))}
+            </div>
+          </fieldset>
         </aside>
       )}
     </>

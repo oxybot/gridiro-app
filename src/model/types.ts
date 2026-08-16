@@ -21,9 +21,15 @@ export type TextElement = {
 };
 
 export type Connection = {
+  id: string;
   sourceId: string;
   targetId: string;
+  color: ElementColor;
+  style: ConnectionStyle;
+  label: string;
 };
+
+export type ConnectionStyle = "solid" | "dashed";
 
 export type Surface = {
   id: string;
@@ -32,11 +38,11 @@ export type Surface = {
   x2: number;
   y2: number;
   squared: boolean;
-  backgroundColor: SurfaceColor;
+  backgroundColor: ElementColor;
   label: string;
 };
 
-export type SurfaceColor = "gray" | "blue" | "green" | "yellow" | "red";
+export type ElementColor = "gray" | "blue" | "green" | "yellow" | "red";
 
 export type Point = {
   x: number;
@@ -53,10 +59,11 @@ export type MenuState = {
   x: number;
   y: number;
   side: "left" | "right";
-  kind: "empty" | "node" | "text" | "surface";
+  kind: "empty" | "node" | "text" | "surface" | "connection";
   node?: Node;
   text?: TextElement;
   surface?: Surface;
+  connection?: Connection;
 };
 
 // A dragged element is looked up by id from the nodes/texts/surfaces arrays, so only its kind, id and pointer offset need tracking.
@@ -81,7 +88,8 @@ export type PanState = {
 export type EditingElement =
   | { kind: "node"; node: Node }
   | { kind: "text"; text: TextElement }
-  | { kind: "surface"; surface: Surface };
+  | { kind: "surface"; surface: Surface }
+  | { kind: "connection"; connection: Connection };
 
 export type AppState = {
   nodes: Node[];
@@ -118,6 +126,8 @@ export type AppAction =
   | { type: "setSelectedSurface"; surfaceId: string | null }
   | { type: "setResizingSurface"; resizingSurface: ResizingSurface | null }
   | { type: "addConnection"; connection: Connection }
+  | { type: "updateConnection"; connectionId: string; changes: Partial<Connection> }
+  | { type: "removeConnection"; connectionId: string }
   | { type: "setHoverPos"; position: Point }
   | { type: "setHovering"; isHovering: boolean }
   | { type: "setDragging"; dragging: DraggingElement | null }
