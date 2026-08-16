@@ -2,7 +2,7 @@ import type { MouseEvent } from "react";
 import { grid, midHeight, midWidth } from "../model/geometry";
 import type { ElementColor, Point } from "../model/types";
 
-type DiagramConnectionProps = {
+type ConnectionLineProps = {
   source: Point;
   target: Point;
   color?: ElementColor;
@@ -13,7 +13,7 @@ type DiagramConnectionProps = {
   onContextMenu?: (event: MouseEvent<SVGPathElement>) => void;
 };
 
-export function DiagramConnection({ source, target, color, dashed, label, selected, draft, onContextMenu }: DiagramConnectionProps) {
+export function ConnectionLine({ source, target, color, dashed, label, selected, draft, onContextMenu }: ConnectionLineProps) {
   const deltaX = target.x - source.x;
   const deltaY = target.y - source.y;
   const a = deltaX / grid.width - deltaY / grid.height;

@@ -1,15 +1,15 @@
 import type { MouseEvent, PointerEvent } from "react";
 import { NodeLabel } from "./NodeLabel";
-import { DiagramTextLabel } from "./DiagramTextLabel";
-import { DiagramSurface } from "./DiagramSurface";
-import { DiagramConnection } from "./DiagramConnection";
+import { TextLabel } from "./TextLabel";
+import { SurfaceShape } from "./SurfaceShape";
+import { ConnectionLine } from "./ConnectionLine";
 import type { Connection, Node, Surface, SurfaceCorner, TextElement } from "../model/types";
 import { createNode } from "../model/node";
 import { createConnection } from "../model/connection";
 import { grid, midHeight, midWidth, snapToIsoGrid, zoomLevels } from "../model/geometry";
 import { useDocumentDispatch, useDocumentState, useViewDispatch, useViewState } from "../state/DiagramProvider";
 
-export function DiagramCanvas() {
+export function Canvas() {
   const documentState = useDocumentState();
   const dispatchDocument = useDocumentDispatch();
   const view = useViewState();
@@ -306,7 +306,7 @@ export function DiagramCanvas() {
 
         {documentState.surfaces.map((surface) => (
           <g key={surface.id}>
-            <DiagramSurface
+            <SurfaceShape
               surface={surface}
               selected={view.selectedSurfaceId === surface.id}
               onBodyPointerDown={(event) => handleElementPointerDown(event, "surface", surface)}
@@ -328,7 +328,7 @@ export function DiagramCanvas() {
           }
 
           return (
-            <DiagramConnection
+            <ConnectionLine
               key={connection.id}
               source={source}
               target={target}
@@ -347,7 +347,7 @@ export function DiagramCanvas() {
           }
 
           return (
-            <DiagramConnection source={source} target={view.connectionDraft.pointerPosition} draft />
+            <ConnectionLine source={source} target={view.connectionDraft.pointerPosition} draft />
           );
         })()}
 
@@ -391,7 +391,7 @@ export function DiagramCanvas() {
 
         {documentState.texts.map((text) => (
           <g key={text.id} className="text-element" transform={`translate(${text.x} ${text.y})`}>
-            <DiagramTextLabel
+            <TextLabel
               text={text}
               selected={(view.menu.isOpen && view.menu.kind === "text" && view.menu.text?.id === text.id) || (view.editing?.kind === "text" && view.editing.text.id === text.id)}
               onPointerDown={(event) => handleElementPointerDown(event, "text", text)}

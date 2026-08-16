@@ -7,7 +7,7 @@ import { createSurface } from "../model/surface";
 import { grid, zoomLevels } from "../model/geometry";
 import { useDocumentDispatch, useViewDispatch, useViewState } from "../state/DiagramProvider";
 
-export function DiagramOverlays() {
+export function Overlays() {
   const view = useViewState();
   const dispatchView = useViewDispatch();
   const dispatchDocument = useDocumentDispatch();

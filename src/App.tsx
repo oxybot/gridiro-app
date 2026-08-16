@@ -1,6 +1,6 @@
 import { useRef } from "react";
-import { DiagramCanvas } from "./components/DiagramCanvas";
-import { DiagramOverlays } from "./components/DiagramOverlays";
+import { Canvas } from "./components/Canvas";
+import { Overlays } from "./components/Overlays";
 import { DiagramProvider, useDocumentState, useViewDispatch, useViewState } from "./state/DiagramProvider";
 import { defaultZoomIndex, getContentBounds, zoomLevels } from "./model/geometry";
 
@@ -50,8 +50,8 @@ function Diagram() {
         <h1>Gridiro App <small>Hackathon mode</small></h1>
       </section>
       <section className="diagram" ref={diagramRef} onClick={() => dispatchView({ type: "closeMenu" })}>
-        <DiagramCanvas />
-        <DiagramOverlays />
+        <Canvas />
+        <Overlays />
         <div className="zoom-controls" onClick={(event) => event.stopPropagation()}>
           <button type="button" onClick={() => zoomFromCenter("zoomOut")} disabled={viewState.zoomIndex === 0} aria-label="Zoom out">−</button>
           <span>{Math.round(zoomLevels[viewState.zoomIndex] * 100)}%</span>

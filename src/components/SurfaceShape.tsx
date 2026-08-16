@@ -4,7 +4,7 @@ import { grid, midHeight, midWidth } from "../model/geometry";
 
 const handleSize = 12;
 
-type DiagramSurfaceProps = {
+type SurfaceShapeProps = {
   surface: Surface;
   selected: boolean;
   onBodyPointerDown: (event: PointerEvent<SVGPathElement>) => void;
@@ -16,7 +16,7 @@ type DiagramSurfaceProps = {
   onCornerPointerUp: (event: PointerEvent<SVGRectElement>) => void;
 };
 
-export function DiagramSurface({
+export function SurfaceShape({
   surface,
   selected,
   onBodyPointerDown,
@@ -26,7 +26,7 @@ export function DiagramSurface({
   onCornerPointerDown,
   onCornerPointerMove,
   onCornerPointerUp,
-}: DiagramSurfaceProps) {
+}: SurfaceShapeProps) {
 
   const deltaX = surface.x2 - surface.x1;
   const deltaY = surface.y2 - surface.y1;
