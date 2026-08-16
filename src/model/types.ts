@@ -1,4 +1,4 @@
-import type { IsoflowIcon } from "./assets/isoflowIcons";
+import type { IsoflowIcon } from "../assets/isoflowIcons";
 
 export type Node = {
   id: string;

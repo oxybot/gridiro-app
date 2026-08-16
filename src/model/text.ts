@@ -1,4 +1,4 @@
-import type { TextElement } from "./diagramTypes";
+import type { TextElement } from "./types";
 
 export const createText = (x: number, y: number): TextElement => ({
   id: crypto.randomUUID(),

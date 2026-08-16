@@ -1,5 +1,5 @@
-import type { Surface } from "./diagramTypes";
-import { grid } from "./diagramGeometry";
+import type { Surface } from "./types";
+import { grid } from "./geometry";
 
 export const createSurface = (cellX: number, cellY: number): Surface => {
   return {

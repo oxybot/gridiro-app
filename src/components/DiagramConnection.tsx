@@ -1,5 +1,5 @@
-import { grid, midHeight, midWidth } from "../diagramGeometry";
-import type { Point } from "../diagramTypes";
+import { grid, midHeight, midWidth } from "../model/geometry";
+import type { Point } from "../model/types";
 
 type DiagramConnectionProps = {
   source: Point;

@@ -1,5 +1,5 @@
 import { useEffect, useReducer, type Dispatch } from "react";
-import type { AppAction, AppState } from "./diagramTypes";
+import type { AppAction, AppState } from "./model/types";
 
 const diagramStorageKey = "gridiro-diagram";
 

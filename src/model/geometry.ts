@@ -1,4 +1,4 @@
-import type { Point } from "./diagramTypes";
+import type { Point } from "./types";
 
 export const grid = {
   width: 80,

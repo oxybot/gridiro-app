@@ -1,5 +1,5 @@
-import { isoflowIcons } from "./assets/isoflowIcons";
-import type { Node } from "./diagramTypes";
+import { isoflowIcons } from "../assets/isoflowIcons";
+import type { Node } from "./types";
 
 export const createNode = (x: number, y: number): Node => ({
   id: crypto.randomUUID(),

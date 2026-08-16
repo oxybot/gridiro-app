@@ -1,10 +1,10 @@
 import type { Dispatch, MouseEvent } from "react";
 import { isoflowIcons } from "../assets/isoflowIcons";
-import type { AppAction, EditingElement, MenuState, Node, Point, Surface, SurfaceColor, TextElement, TextOrientation, TextSize } from "../diagramTypes";
-import { createNode } from "../diagramNode";
-import { createText } from "../diagramText";
-import { createSurface } from "../diagramSurface";
-import { grid } from "../diagramGeometry";
+import type { AppAction, EditingElement, MenuState, Node, Point, Surface, SurfaceColor, TextElement, TextOrientation, TextSize } from "../model/types";
+import { createNode } from "../model/node";
+import { createText } from "../model/text";
+import { createSurface } from "../model/surface";
+import { grid } from "../model/geometry";
 
 type DiagramOverlaysProps = {
   menu: MenuState;

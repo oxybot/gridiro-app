@@ -1,6 +1,6 @@
 import type { MouseEvent, PointerEvent } from "react";
-import type { Surface, SurfaceCorner } from "../diagramTypes";
-import { grid, midHeight, midWidth } from "../diagramGeometry";
+import type { Surface, SurfaceCorner } from "../model/types";
+import { grid, midHeight, midWidth } from "../model/geometry";
 
 const handleSize = 12;
 

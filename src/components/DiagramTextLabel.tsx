@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import type { MouseEvent, PointerEvent } from "react";
-import type { TextElement } from "../diagramTypes";
-import { grid } from "../diagramGeometry";
+import type { TextElement } from "../model/types";
+import { grid } from "../model/geometry";
 
 const textPaddingX = 6;
 const textPaddingY = 4;

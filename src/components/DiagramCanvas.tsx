@@ -3,9 +3,9 @@ import { NodeLabel } from "./NodeLabel";
 import { DiagramTextLabel } from "./DiagramTextLabel";
 import { DiagramSurface } from "./DiagramSurface";
 import { DiagramConnection } from "./DiagramConnection";
-import type { AppAction, AppState, Node, Surface, SurfaceCorner, TextElement } from "../diagramTypes";
-import { createNode } from "../diagramNode";
-import { grid, midHeight, midWidth, snapToIsoGrid } from "../diagramGeometry";
+import type { AppAction, AppState, Node, Surface, SurfaceCorner, TextElement } from "../model/types";
+import { createNode } from "../model/node";
+import { grid, midHeight, midWidth, snapToIsoGrid } from "../model/geometry";
 
 export type DiagramCanvasProps = {
   state: AppState;
