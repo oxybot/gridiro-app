@@ -365,7 +365,7 @@ export function DiagramCanvas({
         {state.nodes.map((node) => (
           <g key={node.id} className="node" transform={`translate(${node.x} ${node.y})`}>
             <ellipse cx="0" cy="0" rx={0.3 * midWidth} ry={0.3 * midHeight} stroke="black" fill="white" />
-            <line className="node-label-line" y2={-1.3 * grid.height} />
+            {node.label && <line className="node-label-line" y2={-1.3 * grid.height} />}
             <image
               className="node-icon"
               href={node.icon.url}
@@ -374,7 +374,7 @@ export function DiagramCanvas({
               width={grid.width}
               preserveAspectRatio="xMidYMax meet"
             />
-            <NodeLabel label={node.label} y={-1.3 * grid.height} />
+            {node.label && <NodeLabel label={node.label} y={-1.3 * grid.height} />}
             <path
               className="menu-selection"
               d={`M 0 ${midHeight} L ${midWidth} 0 ${grid.width} ${midHeight} ${midWidth} ${grid.height} 0 ${midHeight}`}

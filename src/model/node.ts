@@ -5,6 +5,6 @@ export const createNode = (x: number, y: number): Node => ({
   id: crypto.randomUUID(),
   x,
   y,
-  label: "New node",
+  label: "",
   icon: isoflowIcons.icons[0],
 });
