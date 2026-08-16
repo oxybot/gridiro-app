@@ -1,32 +1,40 @@
-# React + TypeScript + Vite
+# Gridiro
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Gridiro is a web app for creating good-looking application architecture diagrams on an isometric grid.
 
-Currently, two official plugins are available:
+> Live: [gridiro.app](https://gridiro.app)
+>
+> This is an early alpha — expect rough edges and breaking changes.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- Isometric diagram canvas with pan and grid snapping
+- Nodes with selectable icons and labels, connected by lines
+- Text labels with configurable orientation and size
+- Surfaces (background groups) with editable label, background color, and squared/diamond shape
+- Right-click context menus to add, edit, and remove elements
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Getting started
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+pnpm install
+pnpm dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Scripts
+
+- `pnpm dev` — start the Vite dev server
+- `pnpm build` — type-check and build for production
+- `pnpm lint` — run Oxlint
+- `pnpm preview` — preview the production build locally
+
+## Project structure
+
+```
+src/
+  App.tsx           # top-level layout
+  appReducer.ts      # diagram state and actions
+  model/              # diagram domain types and element factories
+  components/          # canvas, overlays, and per-element rendering
+  assets/                # icon set
+```
