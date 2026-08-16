@@ -127,6 +127,8 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       return zoomToIndex(state, state.zoomIndex + 1, action.center);
     case "zoomOut":
       return zoomToIndex(state, state.zoomIndex - 1, action.center);
+    case "setView":
+      return { ...state, pan: action.pan, zoomIndex: action.zoomIndex };
     case "setConnectionDraft":
       return { ...state, connectionDraft: action.connectionDraft };
     case "setMenu":

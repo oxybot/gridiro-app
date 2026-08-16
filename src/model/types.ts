@@ -125,6 +125,7 @@ export type AppAction =
   | { type: "setPanning"; panning: PanState | null }
   | { type: "zoomIn"; center: Point }
   | { type: "zoomOut"; center: Point }
+  | { type: "setView"; pan: Point; zoomIndex: number }
   | { type: "setConnectionDraft"; connectionDraft: ConnectionDraft | null }
   | { type: "setMenu"; menu: MenuState }
   | { type: "closeMenu" }
