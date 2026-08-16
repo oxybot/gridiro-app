@@ -2,6 +2,7 @@ import type { Dispatch, MouseEvent, PointerEvent } from "react";
 import { NodeLabel } from "./NodeLabel";
 import { DiagramTextLabel } from "./DiagramTextLabel";
 import { DiagramSurface } from "./DiagramSurface";
+import { DiagramConnection } from "./DiagramConnection";
 import type { AppAction, Connection, ConnectionDraft, DraggingElement, EditingElement, MenuState, Node, PanState, Point, ResizingSurface, Surface, SurfaceCorner, TextElement } from "../diagramTypes";
 import { createNode } from "../diagramNode";
 import { grid, midHeight, midWidth, snapToIsoGrid } from "../diagramGeometry";
@@ -330,13 +331,10 @@ export function DiagramCanvas({
           }
 
           return (
-            <line
-              className="connection"
+            <DiagramConnection
               key={`${connection.sourceId}-${connection.targetId}`}
-              x1={source.x}
-              y1={source.y}
-              x2={target.x}
-              y2={target.y}
+              source={source}
+              target={target}
             />
           );
         })}
@@ -347,13 +345,7 @@ export function DiagramCanvas({
           }
 
           return (
-            <line
-              className="connection draft"
-              x1={source.x}
-              y1={source.y}
-              x2={connectionDraft.pointerPosition.x}
-              y2={connectionDraft.pointerPosition.y}
-            />
+            <DiagramConnection source={source} target={connectionDraft.pointerPosition} draft />
           );
         })()}
 

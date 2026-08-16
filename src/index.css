@@ -52,9 +52,11 @@ section {
       transition: opacity 160ms ease-out;
     }
 
-    line.connection {
+    line.connection,
+    path.connection {
       stroke: var(--blue-9);
-      stroke-width: 2;
+      stroke-width: 3;
+      fill: none;
       pointer-events: none;
 
       &.draft {
