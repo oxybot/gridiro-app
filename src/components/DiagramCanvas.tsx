@@ -1,23 +1,20 @@
-import type { Dispatch, MouseEvent, PointerEvent } from "react";
+import type { MouseEvent, PointerEvent } from "react";
 import { NodeLabel } from "./NodeLabel";
 import { DiagramTextLabel } from "./DiagramTextLabel";
 import { DiagramSurface } from "./DiagramSurface";
 import { DiagramConnection } from "./DiagramConnection";
-import type { AppAction, AppState, Connection, Node, Surface, SurfaceCorner, TextElement } from "../model/types";
+import type { Connection, Node, Surface, SurfaceCorner, TextElement } from "../model/types";
 import { createNode } from "../model/node";
 import { createConnection } from "../model/connection";
 import { grid, midHeight, midWidth, snapToIsoGrid, zoomLevels } from "../model/geometry";
+import { useDocumentDispatch, useDocumentState, useViewDispatch, useViewState } from "../state/DiagramProvider";
 
-export type DiagramCanvasProps = {
-  state: AppState;
-  dispatch: Dispatch<AppAction>;
-};
-
-export function DiagramCanvas({
-  state,
-  dispatch,
-}: DiagramCanvasProps) {
-  const zoom = zoomLevels[state.zoomIndex];
+export function DiagramCanvas() {
+  const documentState = useDocumentState();
+  const dispatchDocument = useDocumentDispatch();
+  const view = useViewState();
+  const dispatchView = useViewDispatch();
+  const zoom = zoomLevels[view.zoomIndex];
 
   const getPointerPosition = (event: PointerEvent<SVGElement>) => {
     const svg = event.currentTarget.ownerSVGElement;
@@ -31,68 +28,68 @@ export function DiagramCanvas({
 
   const getGridPosition = (event: PointerEvent<SVGElement>) => {
     const pointerPosition = getPointerPosition(event);
-    return pointerPosition ? { x: (pointerPosition.x - state.pan.x) / zoom, y: (pointerPosition.y - state.pan.y) / zoom } : null;
+    return pointerPosition ? { x: (pointerPosition.x - view.pan.x) / zoom, y: (pointerPosition.y - view.pan.y) / zoom } : null;
   };
 
   const handleMouseMove = (event: MouseEvent<SVGSVGElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
-    const position = { x: (event.clientX - rect.left - state.pan.x) / zoom, y: (event.clientY - rect.top - state.pan.y) / zoom };
-    dispatch({ type: "setHoverPos", position: snapToIsoGrid(position) });
-    if (state.connectionDraft) {
-      dispatch({ type: "setConnectionDraft", connectionDraft: { ...state.connectionDraft, pointerPosition: position } });
+    const position = { x: (event.clientX - rect.left - view.pan.x) / zoom, y: (event.clientY - rect.top - view.pan.y) / zoom };
+    dispatchView({ type: "setHoverPos", position: snapToIsoGrid(position) });
+    if (view.connectionDraft) {
+      dispatchView({ type: "setConnectionDraft", connectionDraft: { ...view.connectionDraft, pointerPosition: position } });
     }
   };
 
-  const closeMenu = () => dispatch({ type: "closeMenu" });
+  const closeMenu = () => dispatchView({ type: "closeMenu" });
 
   const handleGridPointerDown = (event: PointerEvent<SVGRectElement>) => {
     if (event.button !== 0) return;
-    if (state.connectionDraft) {
-      dispatch({ type: "setConnectionDraft", connectionDraft: null });
+    if (view.connectionDraft) {
+      dispatchView({ type: "setConnectionDraft", connectionDraft: null });
       return;
     }
     const pointerPosition = getPointerPosition(event);
     if (!pointerPosition) return;
     event.currentTarget.setPointerCapture(event.pointerId);
-    dispatch({ type: "setPanning", panning: { pointerPosition, startPosition: state.pan } });
-    dispatch({ type: "setSelectedSurface", surfaceId: null });
+    dispatchView({ type: "setPanning", panning: { pointerPosition, startPosition: view.pan } });
+    dispatchView({ type: "setSelectedSurface", surfaceId: null });
     closeMenu();
   };
 
   const handleGridPointerMove = (event: PointerEvent<SVGRectElement>) => {
-    if (!state.panning) return;
+    if (!view.panning) return;
     const pointerPosition = getPointerPosition(event);
     if (!pointerPosition) return;
-    dispatch({
+    dispatchView({
       type: "setPan", pan: {
-        x: state.panning.startPosition.x + pointerPosition.x - state.panning.pointerPosition.x,
-        y: state.panning.startPosition.y + pointerPosition.y - state.panning.pointerPosition.y,
+        x: view.panning.startPosition.x + pointerPosition.x - view.panning.pointerPosition.x,
+        y: view.panning.startPosition.y + pointerPosition.y - view.panning.pointerPosition.y,
       }
     });
   };
 
   const handleGridPointerUp = (event: PointerEvent<SVGRectElement>) => {
     event.currentTarget.releasePointerCapture(event.pointerId);
-    dispatch({ type: "setPanning", panning: null });
+    dispatchView({ type: "setPanning", panning: null });
   };
 
   const handleElementPointerDown = (event: PointerEvent<SVGGraphicsElement>, kind: "node" | "text" | "surface", element: Node | TextElement | Surface) => {
     if (event.button !== 0) return;
     event.stopPropagation();
-    if (state.connectionDraft) return;
+    if (view.connectionDraft) return;
     const gridPosition = getGridPosition(event);
     if (!gridPosition) return;
     const origin = kind === "surface"
       ? { x: (element as Surface).x1, y: (element as Surface).y1 }
       : { x: (element as Node | TextElement).x, y: (element as Node | TextElement).y };
     event.currentTarget.setPointerCapture(event.pointerId);
-    dispatch({ type: "setDragging", dragging: { kind, id: element.id, pointerOffset: { x: gridPosition.x - origin.x, y: gridPosition.y - origin.y } } });
-    dispatch({ type: "setSelectedSurface", surfaceId: kind === "surface" ? element.id : null });
+    dispatchView({ type: "setDragging", dragging: { kind, id: element.id, pointerOffset: { x: gridPosition.x - origin.x, y: gridPosition.y - origin.y } } });
+    dispatchView({ type: "setSelectedSurface", surfaceId: kind === "surface" ? element.id : null });
     closeMenu();
   };
 
   const handleElementPointerMove = (event: PointerEvent<SVGGraphicsElement>) => {
-    const dragging = state.dragging;
+    const dragging = view.dragging;
     if (!dragging) return;
     const gridPosition = getGridPosition(event);
     if (!gridPosition) return;
@@ -101,40 +98,40 @@ export function DiagramCanvas({
       y: gridPosition.y - dragging.pointerOffset.y,
     });
     if (dragging.kind === "node") {
-      const node = state.nodes.find((currentNode) => currentNode.id === dragging.id);
+      const node = documentState.nodes.find((currentNode) => currentNode.id === dragging.id);
       if (node && node.x === snappedPoint.x && node.y === snappedPoint.y) return;
-      dispatch({ type: "moveNode", nodeId: dragging.id, position: snappedPoint });
+      dispatchDocument({ type: "moveNode", nodeId: dragging.id, position: snappedPoint });
     } else if (dragging.kind === "text") {
-      const text = state.texts.find((currentText) => currentText.id === dragging.id);
+      const text = documentState.texts.find((currentText) => currentText.id === dragging.id);
       if (text && text.x === snappedPoint.x && text.y === snappedPoint.y) return;
-      dispatch({ type: "moveText", textId: dragging.id, position: snappedPoint });
+      dispatchDocument({ type: "moveText", textId: dragging.id, position: snappedPoint });
     } else {
-      const surface = state.surfaces.find((currentSurface) => currentSurface.id === dragging.id);
+      const surface = documentState.surfaces.find((currentSurface) => currentSurface.id === dragging.id);
       if (surface && surface.x1 === snappedPoint.x && surface.y1 === snappedPoint.y) return;
-      dispatch({ type: "moveSurface", surfaceId: dragging.id, position: snappedPoint });
+      dispatchDocument({ type: "moveSurface", surfaceId: dragging.id, position: snappedPoint });
     }
   };
 
   const handleElementPointerUp = (event: PointerEvent<SVGGraphicsElement>) => {
     event.currentTarget.releasePointerCapture(event.pointerId);
-    dispatch({ type: "setDragging", dragging: null });
+    dispatchView({ type: "setDragging", dragging: null });
   };
 
   const handleSurfaceCornerPointerMove = (event: PointerEvent<SVGRectElement>) => {
-    const resizingSurface = state.resizingSurface;
+    const resizingSurface = view.resizingSurface;
     if (!resizingSurface) return;
 
     const gridPosition = getGridPosition(event)
-    const surface = state.surfaces.find((currentSurface) => currentSurface.id === resizingSurface.surfaceId);
+    const surface = documentState.surfaces.find((currentSurface) => currentSurface.id === resizingSurface.surfaceId);
     if (!gridPosition || !surface) return;
     const local = snapToIsoGrid(gridPosition);
 
     switch (resizingSurface.corner) {
       case "left":
-        dispatch({ type: "updateSurface", surfaceId: surface.id, changes: { x1: local.x, y1: local.y } });
+        dispatchDocument({ type: "updateSurface", surfaceId: surface.id, changes: { x1: local.x, y1: local.y } });
         break;
       case "right":
-        dispatch({ type: "updateSurface", surfaceId: surface.id, changes: { x2: local.x, y2: local.y } });
+        dispatchDocument({ type: "updateSurface", surfaceId: surface.id, changes: { x2: local.x, y2: local.y } });
         break;
       case "top":
       case "bottom":
@@ -146,26 +143,26 @@ export function DiagramCanvas({
     if (event.button !== 0) return;
     event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
-    dispatch({ type: "setResizingSurface", resizingSurface: { surfaceId: surface.id, corner } });
+    dispatchView({ type: "setResizingSurface", resizingSurface: { surfaceId: surface.id, corner } });
   };
 
   const handleSurfaceCornerPointerUp = (event: PointerEvent<SVGRectElement>) => {
     event.currentTarget.releasePointerCapture(event.pointerId);
-    dispatch({ type: "setResizingSurface", resizingSurface: null });
+    dispatchView({ type: "setResizingSurface", resizingSurface: null });
   };
 
   const handleNodeClick = (event: MouseEvent<SVGPathElement>, node: Node) => {
     event.stopPropagation();
-    const connectionDraft = state.connectionDraft;
+    const connectionDraft = view.connectionDraft;
     if (!connectionDraft || node.id === connectionDraft.sourceId) return;
-    const connectionExists = state.connections.some((connection) =>
+    const connectionExists = documentState.connections.some((connection) =>
       (connection.sourceId === connectionDraft.sourceId && connection.targetId === node.id)
       || (connection.sourceId === node.id && connection.targetId === connectionDraft.sourceId),
     );
     if (!connectionExists) {
-      dispatch({ type: "addConnection", connection: createConnection(connectionDraft.sourceId, node.id) });
+      dispatchDocument({ type: "addConnection", connection: createConnection(connectionDraft.sourceId, node.id) });
     }
-    dispatch({ type: "setConnectionDraft", connectionDraft: null });
+    dispatchView({ type: "setConnectionDraft", connectionDraft: null });
   };
 
   // Right-clicking anywhere on a text's rendered label should open its menu, not just its center cell.
@@ -173,9 +170,9 @@ export function DiagramCanvas({
     event.preventDefault();
     event.stopPropagation();
     const rect = event.currentTarget.ownerSVGElement?.getBoundingClientRect();
-    dispatch({ type: "setHoverPos", position: { x: text.x, y: text.y } });
-    dispatch({ type: "setEditing", editing: null });
-    dispatch({
+    dispatchView({ type: "setHoverPos", position: { x: text.x, y: text.y } });
+    dispatchView({ type: "setEditing", editing: null });
+    dispatchView({
       type: "setMenu", menu: {
         isOpen: true,
         x: text.x,
@@ -192,14 +189,14 @@ export function DiagramCanvas({
     event.stopPropagation();
     const rect = event.currentTarget.getBoundingClientRect();
     const snappedPoint = snapToIsoGrid({
-      x: (event.clientX - rect.left - state.pan.x) / zoom,
-      y: (event.clientY - rect.top - state.pan.y) / zoom,
+      x: (event.clientX - rect.left - view.pan.x) / zoom,
+      y: (event.clientY - rect.top - view.pan.y) / zoom,
     });
-    const node = state.nodes.find((currentNode) => currentNode.x === snappedPoint.x && currentNode.y === snappedPoint.y);
-    const text = !node ? state.texts.find((currentText) => currentText.x === snappedPoint.x && currentText.y === snappedPoint.y) : undefined;
-    dispatch({ type: "setHoverPos", position: snappedPoint });
-    dispatch({ type: "setEditing", editing: null });
-    dispatch({
+    const node = documentState.nodes.find((currentNode) => currentNode.x === snappedPoint.x && currentNode.y === snappedPoint.y);
+    const text = !node ? documentState.texts.find((currentText) => currentText.x === snappedPoint.x && currentText.y === snappedPoint.y) : undefined;
+    dispatchView({ type: "setHoverPos", position: snappedPoint });
+    dispatchView({ type: "setEditing", editing: null });
+    dispatchView({
       type: "setMenu", menu: {
         isOpen: true,
         x: snappedPoint.x,
@@ -217,11 +214,11 @@ export function DiagramCanvas({
     event.preventDefault();
     event.stopPropagation();
     const rect = event.currentTarget.ownerSVGElement?.getBoundingClientRect();
-    const localX = (event.clientX - (rect?.left ?? 0) - state.pan.x) / zoom;
-    const localY = (event.clientY - (rect?.top ?? 0) - state.pan.y) / zoom;
-    dispatch({ type: "setEditing", editing: null });
-    dispatch({ type: "setSelectedSurface", surfaceId: surface.id });
-    dispatch({
+    const localX = (event.clientX - (rect?.left ?? 0) - view.pan.x) / zoom;
+    const localY = (event.clientY - (rect?.top ?? 0) - view.pan.y) / zoom;
+    dispatchView({ type: "setEditing", editing: null });
+    dispatchView({ type: "setSelectedSurface", surfaceId: surface.id });
+    dispatchView({
       type: "setMenu", menu: {
         isOpen: true,
         x: localX,
@@ -238,10 +235,10 @@ export function DiagramCanvas({
     event.preventDefault();
     event.stopPropagation();
     const rect = event.currentTarget.ownerSVGElement?.getBoundingClientRect();
-    const localX = (event.clientX - (rect?.left ?? 0) - state.pan.x) / zoom;
-    const localY = (event.clientY - (rect?.top ?? 0) - state.pan.y) / zoom;
-    dispatch({ type: "setEditing", editing: null });
-    dispatch({
+    const localX = (event.clientX - (rect?.left ?? 0) - view.pan.x) / zoom;
+    const localY = (event.clientY - (rect?.top ?? 0) - view.pan.y) / zoom;
+    dispatchView({ type: "setEditing", editing: null });
+    dispatchView({
       type: "setMenu", menu: {
         isOpen: true,
         x: localX,
@@ -256,24 +253,24 @@ export function DiagramCanvas({
   const handleDoubleClick = (event: MouseEvent<SVGSVGElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const snappedPoint = snapToIsoGrid({
-      x: (event.clientX - rect.left - state.pan.x) / zoom,
-      y: (event.clientY - rect.top - state.pan.y) / zoom,
+      x: (event.clientX - rect.left - view.pan.x) / zoom,
+      y: (event.clientY - rect.top - view.pan.y) / zoom,
     });
-    const hasElement = state.nodes.some((node) => node.x === snappedPoint.x && node.y === snappedPoint.y)
-      || state.texts.some((text) => text.x === snappedPoint.x && text.y === snappedPoint.y);
+    const hasElement = documentState.nodes.some((node) => node.x === snappedPoint.x && node.y === snappedPoint.y)
+      || documentState.texts.some((text) => text.x === snappedPoint.x && text.y === snappedPoint.y);
     if (!hasElement) {
-      dispatch({ type: "addNode", node: createNode(snappedPoint.x, snappedPoint.y) });
+      dispatchDocument({ type: "addNode", node: createNode(snappedPoint.x, snappedPoint.y) });
     }
-    dispatch({ type: "setHoverPos", position: snappedPoint });
-    dispatch({ type: "setEditing", editing: null });
+    dispatchView({ type: "setHoverPos", position: snappedPoint });
+    dispatchView({ type: "setEditing", editing: null });
     closeMenu();
   };
 
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      onMouseEnter={() => dispatch({ type: "setHovering", isHovering: true })}
-      onMouseLeave={() => dispatch({ type: "setHovering", isHovering: false })}
+      onMouseEnter={() => dispatchView({ type: "setHovering", isHovering: true })}
+      onMouseLeave={() => dispatchView({ type: "setHovering", isHovering: false })}
       onMouseMove={handleMouseMove}
       onContextMenu={handleContextMenu}
       onDoubleClick={handleDoubleClick}
@@ -284,7 +281,7 @@ export function DiagramCanvas({
           width={grid.width}
           height={grid.height}
           patternUnits="userSpaceOnUse"
-          patternTransform={`translate(${state.pan.x} ${state.pan.y}) scale(${zoom})`}
+          patternTransform={`translate(${view.pan.x} ${view.pan.y}) scale(${zoom})`}
         >
           <path className="grid" d={`M 0 ${midHeight} L ${midWidth} 0 ${grid.width} ${midHeight} ${midWidth} ${grid.height} 0 ${midHeight}`} />
         </pattern>
@@ -299,19 +296,19 @@ export function DiagramCanvas({
         onPointerUp={handleGridPointerUp}
       />
 
-      <g transform={`translate(${state.pan.x} ${state.pan.y}) scale(${zoom})`}>
+      <g transform={`translate(${view.pan.x} ${view.pan.y}) scale(${zoom})`}>
         <path
           className="hover"
           d={`M 0 ${midHeight} L ${midWidth} 0 ${grid.width} ${midHeight} ${midWidth} ${grid.height} 0 ${midHeight}`}
-          transform={`translate(${state.hoverPos.x - midWidth} ${state.hoverPos.y - midHeight})`}
-          style={{ opacity: state.isHovering && !state.dragging ? 1 : 0 }}
+          transform={`translate(${view.hoverPos.x - midWidth} ${view.hoverPos.y - midHeight})`}
+          style={{ opacity: view.isHovering && !view.dragging ? 1 : 0 }}
         />
 
-        {state.surfaces.map((surface) => (
+        {documentState.surfaces.map((surface) => (
           <g key={surface.id}>
             <DiagramSurface
               surface={surface}
-              selected={state.selectedSurfaceId === surface.id}
+              selected={view.selectedSurfaceId === surface.id}
               onBodyPointerDown={(event) => handleElementPointerDown(event, "surface", surface)}
               onBodyPointerMove={handleElementPointerMove}
               onBodyPointerUp={handleElementPointerUp}
@@ -323,9 +320,9 @@ export function DiagramCanvas({
           </g>
         ))}
 
-        {state.connections.map((connection) => {
-          const source = state.nodes.find((node) => node.id === connection.sourceId);
-          const target = state.nodes.find((node) => node.id === connection.targetId);
+        {documentState.connections.map((connection) => {
+          const source = documentState.nodes.find((node) => node.id === connection.sourceId);
+          const target = documentState.nodes.find((node) => node.id === connection.targetId);
           if (!source || !target) {
             return null;
           }
@@ -338,31 +335,31 @@ export function DiagramCanvas({
               color={connection.color}
               dashed={connection.style === "dashed"}
               label={connection.label}
-              selected={(state.menu.isOpen && state.menu.kind === "connection" && state.menu.connection?.id === connection.id) || (state.editing?.kind === "connection" && state.editing.connection.id === connection.id)}
+              selected={(view.menu.isOpen && view.menu.kind === "connection" && view.menu.connection?.id === connection.id) || (view.editing?.kind === "connection" && view.editing.connection.id === connection.id)}
               onContextMenu={(event) => handleConnectionContextMenu(event, connection)}
             />
           );
         })}
-        {state.connectionDraft && (() => {
-          const source = state.nodes.find((node) => node.id === state.connectionDraft!.sourceId);
+        {view.connectionDraft && (() => {
+          const source = documentState.nodes.find((node) => node.id === view.connectionDraft!.sourceId);
           if (!source) {
             return null;
           }
 
           return (
-            <DiagramConnection source={source} target={state.connectionDraft.pointerPosition} draft />
+            <DiagramConnection source={source} target={view.connectionDraft.pointerPosition} draft />
           );
         })()}
 
-        {state.menu.isOpen && state.menu.kind === "empty" && (
+        {view.menu.isOpen && view.menu.kind === "empty" && (
           <path
             className="menu-selection"
             d={`M 0 ${midHeight} L ${midWidth} 0 ${grid.width} ${midHeight} ${midWidth} ${grid.height} 0 ${midHeight}`}
-            transform={`translate(${state.menu.x - midWidth} ${state.menu.y - midHeight})`}
+            transform={`translate(${view.menu.x - midWidth} ${view.menu.y - midHeight})`}
           />
         )}
 
-        {state.nodes.map((node) => (
+        {documentState.nodes.map((node) => (
           <g key={node.id} className="node" transform={`translate(${node.x} ${node.y})`}>
             <ellipse cx="0" cy="0" rx={0.3 * midWidth} ry={0.3 * midHeight} stroke="black" fill="white" />
             {node.label && <line className="node-label-line" y2={-1.3 * grid.height} />}
@@ -379,7 +376,7 @@ export function DiagramCanvas({
               className="menu-selection"
               d={`M 0 ${midHeight} L ${midWidth} 0 ${grid.width} ${midHeight} ${midWidth} ${grid.height} 0 ${midHeight}`}
               transform={`translate(${-midWidth} ${-midHeight})`}
-              style={{ opacity: (state.menu.isOpen && state.menu.kind === "node" && state.menu.node?.id === node.id) || (state.editing?.kind === "node" && state.editing.node.id === node.id) ? 1 : 0 }}
+              style={{ opacity: (view.menu.isOpen && view.menu.kind === "node" && view.menu.node?.id === node.id) || (view.editing?.kind === "node" && view.editing.node.id === node.id) ? 1 : 0 }}
             />
             <path
               className="drag-handle"
@@ -392,11 +389,11 @@ export function DiagramCanvas({
           </g>
         ))}
 
-        {state.texts.map((text) => (
+        {documentState.texts.map((text) => (
           <g key={text.id} className="text-element" transform={`translate(${text.x} ${text.y})`}>
             <DiagramTextLabel
               text={text}
-              selected={(state.menu.isOpen && state.menu.kind === "text" && state.menu.text?.id === text.id) || (state.editing?.kind === "text" && state.editing.text.id === text.id)}
+              selected={(view.menu.isOpen && view.menu.kind === "text" && view.menu.text?.id === text.id) || (view.editing?.kind === "text" && view.editing.text.id === text.id)}
               onPointerDown={(event) => handleElementPointerDown(event, "text", text)}
               onPointerMove={handleElementPointerMove}
               onPointerUp={handleElementPointerUp}

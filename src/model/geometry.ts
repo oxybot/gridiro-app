@@ -1,4 +1,4 @@
-import type { AppState, Point } from "./types";
+import type { DocumentState, Point } from "./types";
 
 export const grid = {
   width: 80,
@@ -15,7 +15,7 @@ export const defaultZoomIndex = 1;
 export type Bounds = { minX: number; minY: number; maxX: number; maxY: number };
 
 // Approximate bounding box of every element, padded for icons/labels/surface edges, used to fit the view to content.
-export const getContentBounds = (state: Pick<AppState, "nodes" | "texts" | "surfaces">): Bounds | null => {
+export const getContentBounds = (state: Pick<DocumentState, "nodes" | "texts" | "surfaces">): Bounds | null => {
   const xs: number[] = [];
   const ys: number[] = [];
 

@@ -91,11 +91,14 @@ export type EditingElement =
   | { kind: "surface"; surface: Surface }
   | { kind: "connection"; connection: Connection };
 
-export type AppState = {
+export type DocumentState = {
   nodes: Node[];
   connections: Connection[];
   texts: TextElement[];
   surfaces: Surface[];
+};
+
+export type ViewState = {
   hoverPos: Point;
   isHovering: boolean;
   dragging: DraggingElement | null;
@@ -109,7 +112,7 @@ export type AppState = {
   editing: EditingElement | null;
 };
 
-export type AppAction =
+export type DocumentAction =
   | { type: "addNode"; node: Node }
   | { type: "moveNode"; nodeId: string; position: Point }
   | { type: "updateNode"; nodeId: string; changes: Partial<Node> }
@@ -123,11 +126,13 @@ export type AppAction =
   | { type: "moveSurface"; surfaceId: string; position: Point }
   | { type: "resizeSurface"; surfaceId: string; size: { width: number; height: number } }
   | { type: "removeSurface"; surfaceId: string }
-  | { type: "setSelectedSurface"; surfaceId: string | null }
-  | { type: "setResizingSurface"; resizingSurface: ResizingSurface | null }
   | { type: "addConnection"; connection: Connection }
   | { type: "updateConnection"; connectionId: string; changes: Partial<Connection> }
-  | { type: "removeConnection"; connectionId: string }
+  | { type: "removeConnection"; connectionId: string };
+
+export type ViewAction =
+  | { type: "setSelectedSurface"; surfaceId: string | null }
+  | { type: "setResizingSurface"; resizingSurface: ResizingSurface | null }
   | { type: "setHoverPos"; position: Point }
   | { type: "setHovering"; isHovering: boolean }
   | { type: "setDragging"; dragging: DraggingElement | null }

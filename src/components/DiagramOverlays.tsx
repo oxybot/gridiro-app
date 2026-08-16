@@ -1,50 +1,42 @@
-import type { Dispatch, MouseEvent } from "react";
+import type { MouseEvent } from "react";
 import { isoflowIcons } from "../assets/isoflowIcons";
-import type { AppAction, Connection, ConnectionStyle, EditingElement, ElementColor, MenuState, Node, Point, Surface, TextElement, TextOrientation, TextSize } from "../model/types";
+import type { Connection, ConnectionStyle, ElementColor, Node, Surface, TextElement, TextOrientation, TextSize } from "../model/types";
 import { createNode } from "../model/node";
 import { createText } from "../model/text";
 import { createSurface } from "../model/surface";
-import { grid } from "../model/geometry";
+import { grid, zoomLevels } from "../model/geometry";
+import { useDocumentDispatch, useViewDispatch, useViewState } from "../state/DiagramProvider";
 
-type DiagramOverlaysProps = {
-  menu: MenuState;
-  pan: Point;
-  zoom: number;
-  editing: EditingElement | null;
-  dispatch: Dispatch<AppAction>;
-};
-
-export function DiagramOverlays({
-  menu,
-  pan,
-  zoom,
-  editing,
-  dispatch,
-}: DiagramOverlaysProps) {
-  const closeMenu = () => dispatch({ type: "closeMenu" });
+export function DiagramOverlays() {
+  const view = useViewState();
+  const dispatchView = useViewDispatch();
+  const dispatchDocument = useDocumentDispatch();
+  const { menu, pan, editing } = view;
+  const zoom = zoomLevels[view.zoomIndex];
+  const closeMenu = () => dispatchView({ type: "closeMenu" });
   const editingNode = editing?.kind === "node" ? editing.node : null;
   const editingText = editing?.kind === "text" ? editing.text : null;
   const editingSurface = editing?.kind === "surface" ? editing.surface : null;
   const editingConnection = editing?.kind === "connection" ? editing.connection : null;
   const updateEditingNode = (changes: Partial<Node>) => {
     if (!editingNode) return;
-    dispatch({ type: "setEditing", editing: { kind: "node", node: { ...editingNode, ...changes } } });
-    dispatch({ type: "updateNode", nodeId: editingNode.id, changes });
+    dispatchView({ type: "setEditing", editing: { kind: "node", node: { ...editingNode, ...changes } } });
+    dispatchDocument({ type: "updateNode", nodeId: editingNode.id, changes });
   };
   const updateEditingText = (changes: Partial<TextElement>) => {
     if (!editingText) return;
-    dispatch({ type: "setEditing", editing: { kind: "text", text: { ...editingText, ...changes } } });
-    dispatch({ type: "updateText", textId: editingText.id, changes });
+    dispatchView({ type: "setEditing", editing: { kind: "text", text: { ...editingText, ...changes } } });
+    dispatchDocument({ type: "updateText", textId: editingText.id, changes });
   };
   const updateEditingSurface = (changes: Partial<Surface>) => {
     if (!editingSurface) return;
-    dispatch({ type: "setEditing", editing: { kind: "surface", surface: { ...editingSurface, ...changes } } });
-    dispatch({ type: "updateSurface", surfaceId: editingSurface.id, changes });
+    dispatchView({ type: "setEditing", editing: { kind: "surface", surface: { ...editingSurface, ...changes } } });
+    dispatchDocument({ type: "updateSurface", surfaceId: editingSurface.id, changes });
   };
   const updateEditingConnection = (changes: Partial<Connection>) => {
     if (!editingConnection) return;
-    dispatch({ type: "setEditing", editing: { kind: "connection", connection: { ...editingConnection, ...changes } } });
-    dispatch({ type: "updateConnection", connectionId: editingConnection.id, changes });
+    dispatchView({ type: "setEditing", editing: { kind: "connection", connection: { ...editingConnection, ...changes } } });
+    dispatchDocument({ type: "updateConnection", connectionId: editingConnection.id, changes });
   };
 
   return (
@@ -57,30 +49,30 @@ export function DiagramOverlays({
         >
           {menu.kind === "empty" ? (
             <>
-              <button type="button" onClick={() => { dispatch({ type: "addNode", node: createNode(menu.x, menu.y) }); closeMenu(); }}>Add node</button>
-              <button type="button" onClick={() => { dispatch({ type: "addText", text: createText(menu.x, menu.y) }); closeMenu(); }}>Add text</button>
-              <button type="button" onClick={() => { dispatch({ type: "addSurface", surface: createSurface(menu.x, menu.y) }); closeMenu(); }}>Add surface</button>
+              <button type="button" onClick={() => { dispatchDocument({ type: "addNode", node: createNode(menu.x, menu.y) }); closeMenu(); }}>Add node</button>
+              <button type="button" onClick={() => { dispatchDocument({ type: "addText", text: createText(menu.x, menu.y) }); closeMenu(); }}>Add text</button>
+              <button type="button" onClick={() => { dispatchDocument({ type: "addSurface", surface: createSurface(menu.x, menu.y) }); closeMenu(); }}>Add surface</button>
             </>
           ) : menu.kind === "node" ? (
             <>
-              <button type="button" onClick={() => { if (menu.node) dispatch({ type: "setEditing", editing: { kind: "node", node: menu.node } }); closeMenu(); }}>Edit node</button>
-              <button type="button" onClick={() => { if (menu.node) dispatch({ type: "setConnectionDraft", connectionDraft: { sourceId: menu.node.id, pointerPosition: { x: menu.node.x, y: menu.node.y } } }); closeMenu(); }}>Add connection</button>
-              <button type="button" onClick={() => { if (menu.node) dispatch({ type: "removeNode", nodeId: menu.node.id }); closeMenu(); }}>Remove node</button>
+              <button type="button" onClick={() => { if (menu.node) dispatchView({ type: "setEditing", editing: { kind: "node", node: menu.node } }); closeMenu(); }}>Edit node</button>
+              <button type="button" onClick={() => { if (menu.node) dispatchView({ type: "setConnectionDraft", connectionDraft: { sourceId: menu.node.id, pointerPosition: { x: menu.node.x, y: menu.node.y } } }); closeMenu(); }}>Add connection</button>
+              <button type="button" onClick={() => { if (menu.node) dispatchDocument({ type: "removeNode", nodeId: menu.node.id }); closeMenu(); }}>Remove node</button>
             </>
           ) : menu.kind === "text" ? (
             <>
-              <button type="button" onClick={() => { if (menu.text) dispatch({ type: "setEditing", editing: { kind: "text", text: menu.text } }); closeMenu(); }}>Edit text</button>
-              <button type="button" onClick={() => { if (menu.text) dispatch({ type: "removeText", textId: menu.text.id }); closeMenu(); }}>Remove text</button>
+              <button type="button" onClick={() => { if (menu.text) dispatchView({ type: "setEditing", editing: { kind: "text", text: menu.text } }); closeMenu(); }}>Edit text</button>
+              <button type="button" onClick={() => { if (menu.text) dispatchDocument({ type: "removeText", textId: menu.text.id }); closeMenu(); }}>Remove text</button>
             </>
           ) : menu.kind === "surface" ? (
             <>
-              <button type="button" onClick={() => { if (menu.surface) dispatch({ type: "setEditing", editing: { kind: "surface", surface: menu.surface } }); closeMenu(); }}>Edit surface</button>
-              <button type="button" onClick={() => { if (menu.surface) dispatch({ type: "removeSurface", surfaceId: menu.surface.id }); closeMenu(); }}>Remove surface</button>
+              <button type="button" onClick={() => { if (menu.surface) dispatchView({ type: "setEditing", editing: { kind: "surface", surface: menu.surface } }); closeMenu(); }}>Edit surface</button>
+              <button type="button" onClick={() => { if (menu.surface) dispatchDocument({ type: "removeSurface", surfaceId: menu.surface.id }); closeMenu(); }}>Remove surface</button>
             </>
           ) : (
             <>
-              <button type="button" onClick={() => { if (menu.connection) dispatch({ type: "setEditing", editing: { kind: "connection", connection: menu.connection } }); closeMenu(); }}>Edit connection</button>
-              <button type="button" onClick={() => { if (menu.connection) dispatch({ type: "removeConnection", connectionId: menu.connection.id }); closeMenu(); }}>Remove connection</button>
+              <button type="button" onClick={() => { if (menu.connection) dispatchView({ type: "setEditing", editing: { kind: "connection", connection: menu.connection } }); closeMenu(); }}>Edit connection</button>
+              <button type="button" onClick={() => { if (menu.connection) dispatchDocument({ type: "removeConnection", connectionId: menu.connection.id }); closeMenu(); }}>Remove connection</button>
             </>
           )}
         </div>
@@ -89,7 +81,7 @@ export function DiagramOverlays({
         <aside className="node-editor" onClick={(event: MouseEvent<HTMLElement>) => event.stopPropagation()}>
           <div className="node-editor-header">
             <h2>Edit node</h2>
-            <button className="close-editor" type="button" onClick={() => dispatch({ type: "setEditing", editing: null })} aria-label="Close editor">×</button>
+            <button className="close-editor" type="button" onClick={() => dispatchView({ type: "setEditing", editing: null })} aria-label="Close editor">×</button>
           </div>
           <label>
             Label
@@ -121,7 +113,7 @@ export function DiagramOverlays({
         <aside className="node-editor" onClick={(event: MouseEvent<HTMLElement>) => event.stopPropagation()}>
           <div className="node-editor-header">
             <h2>Edit text</h2>
-            <button className="close-editor" type="button" onClick={() => dispatch({ type: "setEditing", editing: null })} aria-label="Close editor">×</button>
+            <button className="close-editor" type="button" onClick={() => dispatchView({ type: "setEditing", editing: null })} aria-label="Close editor">×</button>
           </div>
           <label>
             Content
@@ -180,7 +172,7 @@ export function DiagramOverlays({
         <aside className="node-editor" onClick={(event: MouseEvent<HTMLElement>) => event.stopPropagation()}>
           <div className="node-editor-header">
             <h2>Edit surface</h2>
-            <button className="close-editor" type="button" onClick={() => dispatch({ type: "setEditing", editing: null })} aria-label="Close editor">×</button>
+            <button className="close-editor" type="button" onClick={() => dispatchView({ type: "setEditing", editing: null })} aria-label="Close editor">×</button>
           </div>
           <label>
             Label
@@ -219,7 +211,7 @@ export function DiagramOverlays({
         <aside className="node-editor" onClick={(event: MouseEvent<HTMLElement>) => event.stopPropagation()}>
           <div className="node-editor-header">
             <h2>Edit connection</h2>
-            <button className="close-editor" type="button" onClick={() => dispatch({ type: "setEditing", editing: null })} aria-label="Close editor">×</button>
+            <button className="close-editor" type="button" onClick={() => dispatchView({ type: "setEditing", editing: null })} aria-label="Close editor">×</button>
           </div>
           <label>
             Label
