@@ -1,8 +1,7 @@
 import type { DocumentAction, DocumentState } from "../model/types";
+import { deserializeDocument, emptyDocument, serializeDocument } from "../model/serialization";
 
 const diagramStorageKey = "gridiro-diagram";
-
-const emptyDocument: DocumentState = { nodes: [], connections: [], texts: [], surfaces: [] };
 
 export const loadDocument = (): DocumentState => {
   try {
@@ -11,19 +10,14 @@ export const loadDocument = (): DocumentState => {
       return emptyDocument;
     }
 
-    const document = JSON.parse(storedDocument) as DocumentState;
-    if (!Array.isArray(document.nodes) || !Array.isArray(document.connections) || !Array.isArray(document.texts) || !Array.isArray(document.surfaces)) {
-      return emptyDocument;
-    }
-
-    return document;
+    return deserializeDocument(storedDocument);
   } catch {
     return emptyDocument;
   }
 };
 
 export const saveDocument = (state: DocumentState) => {
-  localStorage.setItem(diagramStorageKey, JSON.stringify(state));
+  localStorage.setItem(diagramStorageKey, serializeDocument(state));
 };
 
 export const documentReducer = (state: DocumentState, action: DocumentAction): DocumentState => {
@@ -76,5 +70,7 @@ export const documentReducer = (state: DocumentState, action: DocumentAction): D
       return { ...state, connections: state.connections.map((connection) => connection.id === action.connectionId ? { ...connection, ...action.changes } : connection) };
     case "removeConnection":
       return { ...state, connections: state.connections.filter((connection) => connection.id !== action.connectionId) };
+    case "replaceDocument":
+      return action.document;
   }
 };

@@ -1,7 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ChangeEvent } from "react";
 import { Canvas } from "./components/Canvas";
 import { DiagramProvider, useDocumentDispatch, useDocumentHistory, useDocumentState, useViewDispatch, useViewState } from "./state/DiagramProvider";
 import { defaultZoomIndex, getContentBounds, zoomLevels } from "./model/geometry";
+import { deserializeDocument, serializeDocument } from "./model/serialization";
 import { ContextMenu } from "./components/ContextMenu";
 import { ElementEditor } from "./components/ElementEditor";
 
@@ -14,6 +15,7 @@ function Diagram() {
   const viewState = useViewState();
   const dispatchView = useViewDispatch();
   const diagramRef = useRef<HTMLElement>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -61,6 +63,32 @@ function Diagram() {
     });
   };
 
+  const exportDocument = () => {
+    const blob = new Blob([serializeDocument(documentState)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "gridiro-diagram.json";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importDocument = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const document = deserializeDocument(await file.text());
+      dispatchDocument({ type: "replaceDocument", document });
+      dispatchView({ type: "setEditing", editing: null });
+      dispatchView({ type: "closeMenu" });
+    } catch {
+      window.alert("This file is not a valid Gridiro diagram.");
+    } finally {
+      event.target.value = "";
+    }
+  };
+
   useEffect(() => {
     fitToContent();
   }, []);
@@ -75,6 +103,9 @@ function Diagram() {
         <ContextMenu />
         <ElementEditor />
         <div className="zoom-controls" onClick={(event) => event.stopPropagation()}>
+          <button type="button" onClick={exportDocument} aria-label="Export diagram" title="Export diagram">↓</button>
+          <button type="button" onClick={() => importInputRef.current?.click()} aria-label="Import diagram" title="Import diagram">↑</button>
+          <input ref={importInputRef} type="file" accept="application/json,.json" hidden onChange={importDocument} />
           <button type="button" onClick={() => dispatchDocument({ type: "undo" })} disabled={!canUndo} aria-label="Undo last change">↶</button>
           <button type="button" onClick={() => dispatchDocument({ type: "redo" })} disabled={!canRedo} aria-label="Redo last change">↷</button>
           <button type="button" onClick={() => zoomFromCenter("zoomOut")} disabled={viewState.zoomIndex === 0} aria-label="Zoom out">−</button>

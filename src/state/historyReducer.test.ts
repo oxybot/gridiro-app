@@ -26,6 +26,16 @@ describe("historyReducer", () => {
     expect(redone.future).toEqual([]);
   });
 
+  it("makes document replacement undoable", () => {
+    const initial = createDocumentHistory(emptyDocument);
+    const replacement = { ...emptyDocument, nodes: [node("imported")] };
+    const imported = historyReducer(initial, { type: "replaceDocument", document: replacement });
+    const undone = historyReducer(imported, { type: "undo" });
+
+    expect(imported.present).toEqual(replacement);
+    expect(undone.present).toEqual(emptyDocument);
+  });
+
   it("clears redo history after a new document change", () => {
     const initial = createDocumentHistory(emptyDocument);
     const added = historyReducer(initial, { type: "addNode", node: node("node-1") });

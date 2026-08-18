@@ -128,7 +128,8 @@ export type DocumentAction =
   | { type: "removeSurface"; surfaceId: string }
   | { type: "addConnection"; connection: Connection }
   | { type: "updateConnection"; connectionId: string; changes: Partial<Connection> }
-  | { type: "removeConnection"; connectionId: string };
+  | { type: "removeConnection"; connectionId: string }
+  | { type: "replaceDocument"; document: DocumentState };
 
 export type HistoryAction =
   | { type: "undo" }
