@@ -99,13 +99,15 @@ function Diagram() {
         <h1>Gridiro App <small>Hackathon mode</small></h1>
       </section>
       <section className="diagram" ref={diagramRef} onClick={() => dispatchView({ type: "closeMenu" })}>
-        <Canvas />
-        <ContextMenu />
-        <ElementEditor />
-        <div className="zoom-controls" onClick={(event) => event.stopPropagation()}>
+        <div className="toolbar toolbar-document" onClick={(event) => event.stopPropagation()}>
           <button type="button" onClick={exportDocument} aria-label="Export diagram" title="Export diagram">↓</button>
           <button type="button" onClick={() => importInputRef.current?.click()} aria-label="Import diagram" title="Import diagram">↑</button>
           <input ref={importInputRef} type="file" accept="application/json,.json" hidden onChange={importDocument} />
+        </div>
+        <Canvas />
+        <ContextMenu />
+        <ElementEditor />
+        <div className="toolbar toolbar-view" onClick={(event) => event.stopPropagation()}>
           <button type="button" onClick={() => dispatchDocument({ type: "undo" })} disabled={!canUndo} aria-label="Undo last change">↶</button>
           <button type="button" onClick={() => dispatchDocument({ type: "redo" })} disabled={!canRedo} aria-label="Redo last change">↷</button>
           <button type="button" onClick={() => zoomFromCenter("zoomOut")} disabled={viewState.zoomIndex === 0} aria-label="Zoom out">−</button>
