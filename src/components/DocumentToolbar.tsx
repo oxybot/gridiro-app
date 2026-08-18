@@ -1,3 +1,4 @@
+import { Download, Upload } from "lucide-react";
 import { useRef, type ChangeEvent } from "react";
 import { deserializeDocument, serializeDocument } from "../model/serialization";
 import { useDocumentDispatch, useDocumentState, useViewDispatch } from "../state/DiagramProvider";
@@ -36,14 +37,16 @@ export function DocumentToolbar() {
 
   return (
     <div className="toolbar toolbar-document" onClick={(event) => event.stopPropagation()}>
-      <button type="button" onClick={handleExport} aria-label="Export diagram" title="Export diagram">↓</button>
+      <button type="button" onClick={handleExport} aria-label="Export diagram" title="Export diagram">
+        <Download size={16} strokeWidth={2.2} aria-hidden="true" />
+      </button>
       <button
         type="button"
         onClick={() => importInputRef.current?.click()}
         aria-label="Import diagram"
         title="Import diagram"
       >
-        ↑
+        <Upload size={16} strokeWidth={2.2} aria-hidden="true" />
       </button>
       <input ref={importInputRef} type="file" accept="application/json,.json" hidden onChange={handleImport} />
     </div>
