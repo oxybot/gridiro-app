@@ -66,11 +66,10 @@ export type MenuState = {
   connection?: Connection;
 };
 
-// A dragged element is looked up by id from the nodes/texts/surfaces arrays, so only its kind, id and pointer offset need tracking.
+// Drag origins are kept so each selected element can move by the same snapped delta.
 export type DraggingElement = {
-  kind: "node" | "text" | "surface";
-  id: string;
-  pointerOffset: Point;
+  pointerPosition: Point;
+  elements: Array<SelectedElement & { origin: Point }>;
 };
 
 export type SurfaceCorner = "top" | "left" | "right" | "bottom";
@@ -100,12 +99,26 @@ export type DocumentState = {
 
 export type ViewMode = "selection" | "move";
 
+export type SelectableElementKind = "node" | "text" | "surface";
+
+export type SelectedElement = {
+  kind: SelectableElementKind;
+  id: string;
+};
+
+export type SelectionBox = {
+  start: Point;
+  end: Point;
+};
+
 export type ViewState = {
   hoverPos: Point;
   isHovering: boolean;
   dragging: DraggingElement | null;
   resizingSurface: ResizingSurface | null;
   selectedSurfaceId: string | null;
+  selectedElements: SelectedElement[];
+  selectionBox: SelectionBox | null;
   mode: ViewMode;
   pan: Point;
   panning: PanState | null;
@@ -153,6 +166,9 @@ export type DocumentDispatchAction = DocumentAction | HistoryAction;
 
 export type ViewAction =
   | { type: "setSelectedSurface"; surfaceId: string | null }
+  | { type: "setSelection"; selectedElements: SelectedElement[] }
+  | { type: "toggleSelection"; element: SelectedElement }
+  | { type: "setSelectionBox"; selectionBox: SelectionBox | null }
   | { type: "setResizingSurface"; resizingSurface: ResizingSurface | null }
   | { type: "setHoverPos"; position: Point }
   | { type: "setHovering"; isHovering: boolean }

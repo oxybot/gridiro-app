@@ -7,6 +7,8 @@ export const createInitialViewState = (): ViewState => ({
   dragging: null,
   resizingSurface: null,
   selectedSurfaceId: null,
+  selectedElements: [],
+  selectionBox: null,
   mode: "selection",
   pan: { x: 0, y: 0 },
   panning: null,
@@ -42,6 +44,19 @@ export const viewReducer = (state: ViewState, action: ViewAction): ViewState => 
   switch (action.type) {
     case "setSelectedSurface":
       return { ...state, selectedSurfaceId: action.surfaceId };
+    case "setSelection":
+      return { ...state, selectedElements: action.selectedElements };
+    case "toggleSelection": {
+      const isSelected = state.selectedElements.some((element) => element.kind === action.element.kind && element.id === action.element.id);
+      return {
+        ...state,
+        selectedElements: isSelected
+          ? state.selectedElements.filter((element) => element.kind !== action.element.kind || element.id !== action.element.id)
+          : [...state.selectedElements, action.element],
+      };
+    }
+    case "setSelectionBox":
+      return { ...state, selectionBox: action.selectionBox };
     case "setResizingSurface":
       return { ...state, resizingSurface: action.resizingSurface };
     case "setHoverPos":

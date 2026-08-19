@@ -3,11 +3,12 @@ import { NodeLabel } from "./NodeLabel";
 import { TextLabel } from "./TextLabel";
 import { SurfaceShape } from "./SurfaceShape";
 import { ConnectionLine } from "./ConnectionLine";
-import type { Connection, Node, Surface, SurfaceCorner, TextElement } from "../model/types";
+import type { Connection, Node, SelectedElement, Surface, SurfaceCorner, TextElement } from "../model/types";
 import { createNode } from "../model/node";
 import { createConnection } from "../model/connection";
 import { grid, midHeight, midWidth, snapToIsoGrid, zoomLevels } from "../model/geometry";
 import { useDocumentDispatch, useDocumentState, useViewDispatch, useViewState } from "../state/DiagramProvider";
+import { getSurfaceBounds } from "../model/surface";
 
 export function Canvas() {
   const documentState = useDocumentState();
@@ -42,6 +43,37 @@ export function Canvas() {
 
   const closeMenu = () => dispatchView({ type: "closeMenu" });
 
+  const getElementOrigin = (kind: SelectedElement["kind"], element: Node | TextElement | Surface) =>
+    kind === "surface"
+      ? { x: (element as Surface).x1, y: (element as Surface).y1 }
+      : { x: (element as Node | TextElement).x, y: (element as Node | TextElement).y };
+
+  const getElementBounds = (kind: SelectedElement["kind"], element: Node | TextElement | Surface) => {
+    if (kind === "surface") {
+      return getSurfaceBounds(element as Surface);
+    }
+
+    const point = element as Node | TextElement;
+    return kind === "node"
+      ? { minX: point.x - midWidth, minY: point.y - midHeight, maxX: point.x + midWidth, maxY: point.y + midHeight }
+      : { minX: point.x - grid.width, minY: point.y - grid.height, maxX: point.x + grid.width, maxY: point.y + grid.height };
+  };
+
+  const getMarqueeSelection = (start: { x: number; y: number }, end: { x: number; y: number }) => {
+    const bounds = { minX: Math.min(start.x, end.x), minY: Math.min(start.y, end.y), maxX: Math.max(start.x, end.x), maxY: Math.max(start.y, end.y) };
+    const isContained = (elementBounds: ReturnType<typeof getElementBounds>) =>
+      elementBounds.minX >= bounds.minX
+      && elementBounds.minY >= bounds.minY
+      && elementBounds.maxX <= bounds.maxX
+      && elementBounds.maxY <= bounds.maxY;
+
+    return [
+      ...documentState.nodes.filter((node) => isContained(getElementBounds("node", node))).map((node) => ({ kind: "node" as const, id: node.id })),
+      ...documentState.texts.filter((text) => isContained(getElementBounds("text", text))).map((text) => ({ kind: "text" as const, id: text.id })),
+      ...documentState.surfaces.filter((surface) => isContained(getElementBounds("surface", surface))).map((surface) => ({ kind: "surface" as const, id: surface.id })),
+    ];
+  };
+
   const handleGridPointerDown = (event: PointerEvent<SVGRectElement>) => {
     if (event.button !== 0) return;
     if (view.connectionDraft) {
@@ -60,10 +92,21 @@ export function Canvas() {
     }
 
     dispatchView({ type: "setSelectedSurface", surfaceId: null });
+    const gridPosition = getGridPosition(event);
+    if (!gridPosition) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dispatchView({ type: "setSelectionBox", selectionBox: { start: gridPosition, end: gridPosition } });
     closeMenu();
   };
 
   const handleGridPointerMove = (event: PointerEvent<SVGRectElement>) => {
+    if (view.selectionBox) {
+      const gridPosition = getGridPosition(event);
+      if (gridPosition) {
+        dispatchView({ type: "setSelectionBox", selectionBox: { ...view.selectionBox, end: gridPosition } });
+      }
+      return;
+    }
     if (!view.panning) return;
     const pointerPosition = getPointerPosition(event);
     if (!pointerPosition) return;
@@ -76,7 +119,15 @@ export function Canvas() {
   };
 
   const handleGridPointerUp = (event: PointerEvent<SVGRectElement>) => {
-    event.currentTarget.releasePointerCapture(event.pointerId);
+    if (view.selectionBox) {
+      const gridPosition = getGridPosition(event);
+      const selectionBox = gridPosition ? { ...view.selectionBox, end: gridPosition } : view.selectionBox;
+      dispatchView({ type: "setSelection", selectedElements: getMarqueeSelection(selectionBox.start, selectionBox.end) });
+      dispatchView({ type: "setSelectionBox", selectionBox: null });
+    }
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
     dispatchView({ type: "setPanning", panning: null });
   };
 
@@ -86,13 +137,29 @@ export function Canvas() {
     if (view.mode === "move" || view.connectionDraft) return;
     const gridPosition = getGridPosition(event);
     if (!gridPosition) return;
-    const origin = kind === "surface"
-      ? { x: (element as Surface).x1, y: (element as Surface).y1 }
-      : { x: (element as Node | TextElement).x, y: (element as Node | TextElement).y };
+    const target = { kind, id: element.id };
+    if (event.shiftKey || event.ctrlKey || event.metaKey) {
+      dispatchView({ type: "toggleSelection", element: target });
+      dispatchView({ type: "setSelectedSurface", surfaceId: null });
+      closeMenu();
+      return;
+    }
+
+    const isSelected = view.selectedElements.some((selected) => selected.kind === kind && selected.id === element.id);
+    const selectedElements = isSelected ? view.selectedElements : [target];
+    const elements = selectedElements.flatMap((selected) => {
+      const selectedElement = selected.kind === "node"
+        ? documentState.nodes.find((node) => node.id === selected.id)
+        : selected.kind === "text"
+          ? documentState.texts.find((text) => text.id === selected.id)
+          : documentState.surfaces.find((surface) => surface.id === selected.id);
+      return selectedElement ? [{ ...selected, origin: getElementOrigin(selected.kind, selectedElement) }] : [];
+    });
     event.currentTarget.setPointerCapture(event.pointerId);
     dispatchDocument({ type: "startMove" });
-    dispatchView({ type: "setDragging", dragging: { kind, id: element.id, pointerOffset: { x: gridPosition.x - origin.x, y: gridPosition.y - origin.y } } });
-    dispatchView({ type: "setSelectedSurface", surfaceId: kind === "surface" ? element.id : null });
+    dispatchView({ type: "setSelection", selectedElements });
+    dispatchView({ type: "setDragging", dragging: { pointerPosition: snapToIsoGrid(gridPosition), elements } });
+    dispatchView({ type: "setSelectedSurface", surfaceId: selectedElements.length === 1 && kind === "surface" ? element.id : null });
     closeMenu();
   };
 
@@ -101,23 +168,18 @@ export function Canvas() {
     if (!dragging) return;
     const gridPosition = getGridPosition(event);
     if (!gridPosition) return;
-    const snappedPoint = snapToIsoGrid({
-      x: gridPosition.x - dragging.pointerOffset.x,
-      y: gridPosition.y - dragging.pointerOffset.y,
+    const snappedPointerPosition = snapToIsoGrid(gridPosition);
+    const delta = { x: snappedPointerPosition.x - dragging.pointerPosition.x, y: snappedPointerPosition.y - dragging.pointerPosition.y };
+    dragging.elements.forEach((dragged) => {
+      const position = { x: dragged.origin.x + delta.x, y: dragged.origin.y + delta.y };
+      if (dragged.kind === "node") {
+        dispatchDocument({ type: "previewMoveNode", nodeId: dragged.id, position });
+      } else if (dragged.kind === "text") {
+        dispatchDocument({ type: "previewMoveText", textId: dragged.id, position });
+      } else {
+        dispatchDocument({ type: "previewMoveSurface", surfaceId: dragged.id, position });
+      }
     });
-    if (dragging.kind === "node") {
-      const node = documentState.nodes.find((currentNode) => currentNode.id === dragging.id);
-      if (node && node.x === snappedPoint.x && node.y === snappedPoint.y) return;
-      dispatchDocument({ type: "previewMoveNode", nodeId: dragging.id, position: snappedPoint });
-    } else if (dragging.kind === "text") {
-      const text = documentState.texts.find((currentText) => currentText.id === dragging.id);
-      if (text && text.x === snappedPoint.x && text.y === snappedPoint.y) return;
-      dispatchDocument({ type: "previewMoveText", textId: dragging.id, position: snappedPoint });
-    } else {
-      const surface = documentState.surfaces.find((currentSurface) => currentSurface.id === dragging.id);
-      if (surface && surface.x1 === snappedPoint.x && surface.y1 === snappedPoint.y) return;
-      dispatchDocument({ type: "previewMoveSurface", surfaceId: dragging.id, position: snappedPoint });
-    }
   };
 
   const handleElementPointerUp = (event: PointerEvent<SVGGraphicsElement>) => {
@@ -183,6 +245,7 @@ export function Canvas() {
     const rect = event.currentTarget.ownerSVGElement?.getBoundingClientRect();
     dispatchView({ type: "setHoverPos", position: { x: text.x, y: text.y } });
     dispatchView({ type: "setEditing", editing: null });
+    dispatchView({ type: "setSelection", selectedElements: [] });
     dispatchView({
       type: "setMenu", menu: {
         isOpen: true,
@@ -207,6 +270,7 @@ export function Canvas() {
     const text = !node ? documentState.texts.find((currentText) => currentText.x === snappedPoint.x && currentText.y === snappedPoint.y) : undefined;
     dispatchView({ type: "setHoverPos", position: snappedPoint });
     dispatchView({ type: "setEditing", editing: null });
+    dispatchView({ type: "setSelection", selectedElements: [] });
     dispatchView({
       type: "setMenu", menu: {
         isOpen: true,
@@ -229,6 +293,7 @@ export function Canvas() {
     const localY = (event.clientY - (rect?.top ?? 0) - view.pan.y) / zoom;
     dispatchView({ type: "setEditing", editing: null });
     dispatchView({ type: "setSelectedSurface", surfaceId: surface.id });
+    dispatchView({ type: "setSelection", selectedElements: [] });
     dispatchView({
       type: "setMenu", menu: {
         isOpen: true,
@@ -249,6 +314,7 @@ export function Canvas() {
     const localX = (event.clientX - (rect?.left ?? 0) - view.pan.x) / zoom;
     const localY = (event.clientY - (rect?.top ?? 0) - view.pan.y) / zoom;
     dispatchView({ type: "setEditing", editing: null });
+    dispatchView({ type: "setSelection", selectedElements: [] });
     dispatchView({
       type: "setMenu", menu: {
         isOpen: true,
@@ -319,7 +385,8 @@ export function Canvas() {
           <g key={surface.id}>
             <SurfaceShape
               surface={surface}
-              selected={view.selectedSurfaceId === surface.id}
+              selected={view.selectedSurfaceId === surface.id || view.selectedElements.some((selected) => selected.kind === "surface" && selected.id === surface.id)}
+              showHandles={view.selectedSurfaceId === surface.id || (view.selectedElements.length === 1 && view.selectedElements[0].kind === "surface" && view.selectedElements[0].id === surface.id)}
               onBodyPointerDown={(event) => handleElementPointerDown(event, "surface", surface)}
               onBodyPointerMove={handleElementPointerMove}
               onBodyPointerUp={handleElementPointerUp}
@@ -370,6 +437,16 @@ export function Canvas() {
           />
         )}
 
+        {view.selectionBox && (
+          <rect
+            className="selection-box"
+            x={Math.min(view.selectionBox.start.x, view.selectionBox.end.x)}
+            y={Math.min(view.selectionBox.start.y, view.selectionBox.end.y)}
+            width={Math.abs(view.selectionBox.end.x - view.selectionBox.start.x)}
+            height={Math.abs(view.selectionBox.end.y - view.selectionBox.start.y)}
+          />
+        )}
+
         {documentState.nodes.map((node) => (
           <g key={node.id} className="node" transform={`translate(${node.x} ${node.y})`}>
             <ellipse cx="0" cy="0" rx={0.3 * midWidth} ry={0.3 * midHeight} stroke="black" fill="white" />
@@ -387,7 +464,7 @@ export function Canvas() {
               className="menu-selection"
               d={`M 0 ${midHeight} L ${midWidth} 0 ${grid.width} ${midHeight} ${midWidth} ${grid.height} 0 ${midHeight}`}
               transform={`translate(${-midWidth} ${-midHeight})`}
-              style={{ opacity: (view.menu.isOpen && view.menu.kind === "node" && view.menu.node?.id === node.id) || (view.editing?.kind === "node" && view.editing.node.id === node.id) ? 1 : 0 }}
+              style={{ opacity: view.selectedElements.some((selected) => selected.kind === "node" && selected.id === node.id) || (view.menu.isOpen && view.menu.kind === "node" && view.menu.node?.id === node.id) || (view.editing?.kind === "node" && view.editing.node.id === node.id) ? 1 : 0 }}
             />
             <path
               className="drag-handle"
@@ -404,7 +481,7 @@ export function Canvas() {
           <g key={text.id} className="text-element" transform={`translate(${text.x} ${text.y})`}>
             <TextLabel
               text={text}
-              selected={(view.menu.isOpen && view.menu.kind === "text" && view.menu.text?.id === text.id) || (view.editing?.kind === "text" && view.editing.text.id === text.id)}
+              selected={view.selectedElements.some((selected) => selected.kind === "text" && selected.id === text.id) || (view.menu.isOpen && view.menu.kind === "text" && view.menu.text?.id === text.id) || (view.editing?.kind === "text" && view.editing.text.id === text.id)}
               onPointerDown={(event) => handleElementPointerDown(event, "text", text)}
               onPointerMove={handleElementPointerMove}
               onPointerUp={handleElementPointerUp}

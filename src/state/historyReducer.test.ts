@@ -59,6 +59,21 @@ describe("historyReducer", () => {
     expect(undone.present).toEqual(initial.present);
   });
 
+  it("records a grouped drag as one history entry", () => {
+    const text = { id: "text-1", x: 80, y: 50, content: "Text", orientation: "horizontal" as const, size: "medium" as const };
+    const initial = createDocumentHistory({ ...emptyDocument, nodes: [node("node-1")], texts: [text] });
+    const started = historyReducer(initial, { type: "startMove" });
+    const movedNode = historyReducer(started, { type: "previewMoveNode", nodeId: "node-1", position: { x: 160, y: 100 } });
+    const movedGroup = historyReducer(movedNode, { type: "previewMoveText", textId: "text-1", position: { x: 240, y: 150 } });
+    const finished = historyReducer(movedGroup, { type: "finishMove" });
+    const undone = historyReducer(finished, { type: "undo" });
+
+    expect(finished.past).toEqual([initial.present]);
+    expect(finished.present.nodes[0]).toMatchObject({ x: 160, y: 100 });
+    expect(finished.present.texts[0]).toMatchObject({ x: 240, y: 150 });
+    expect(undone.present).toEqual(initial.present);
+  });
+
   it("records a surface resize as one history entry", () => {
     const surface = {
       id: "surface-1",

@@ -7,6 +7,7 @@ const handleSize = 12;
 type SurfaceShapeProps = {
   surface: Surface;
   selected: boolean;
+  showHandles: boolean;
   onBodyPointerDown: (event: PointerEvent<SVGPathElement>) => void;
   onBodyPointerMove: (event: PointerEvent<SVGPathElement>) => void;
   onBodyPointerUp: (event: PointerEvent<SVGPathElement>) => void;
@@ -19,6 +20,7 @@ type SurfaceShapeProps = {
 export function SurfaceShape({
   surface,
   selected,
+  showHandles,
   onBodyPointerDown,
   onBodyPointerMove,
   onBodyPointerUp,
@@ -41,7 +43,7 @@ export function SurfaceShape({
     <g transform={`translate(${surface.x1}, ${surface.y1})`}>
       {surface.squared ? (
         <path
-          className="surface"
+          className={`surface${selected ? " selected" : ""}`}
           style={{ fill: surface.backgroundColor }}
           d={`M ${left.x} ${left.y} L ${top.x} ${top.y}, ${right.x} ${right.y}, ${bottom.x} ${bottom.y} Z`}
           onPointerDown={onBodyPointerDown}
@@ -51,7 +53,7 @@ export function SurfaceShape({
         />
       ) : (
         <path
-          className="surface"
+          className={`surface${selected ? " selected" : ""}`}
           style={{ fill: surface.backgroundColor }}
           d={`M ${left.x + midWidth / 2} ${left.y + midHeight / 2} l 0 ${-midHeight}
             L ${top.x - midWidth / 2} ${top.y + midHeight / 2} l ${midWidth} 0
@@ -80,7 +82,7 @@ export function SurfaceShape({
           </g>
         </>
       )}
-      {selected && (
+      {showHandles && (
         <rect
           className="surface-handle"
           x={left.x - handleSize / 2}
@@ -92,7 +94,7 @@ export function SurfaceShape({
           onPointerUp={onCornerPointerUp}
         />
       )}
-      {selected && (
+      {showHandles && (
         <rect
           className="surface-handle"
           x={right.x - handleSize / 2}

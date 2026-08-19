@@ -137,6 +137,14 @@ button {
       transition: opacity 160ms ease-out;
     }
 
+    .selection-box {
+      fill: color-mix(in srgb, var(--blue-3) 20%, transparent);
+      stroke: var(--blue-7);
+      stroke-width: 2;
+      stroke-dasharray: 6 4;
+      pointer-events: none;
+    }
+
     path.connection {
       stroke: var(--blue-9);
       stroke-width: 3;
@@ -207,6 +215,11 @@ button {
       stroke: var(--gray-9);
       stroke-width: 1;
       pointer-events: all;
+
+      &.selected {
+        stroke: var(--blue-7);
+        stroke-width: 3;
+      }
     }
 
     .surface-label {

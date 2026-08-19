@@ -29,4 +29,27 @@ describe("viewReducer", () => {
     expect(zoomedOut.zoomIndex).toBe(0);
     expect(zoomedIn.zoomIndex).toBe(1);
   });
+
+  it("replaces and toggles selected elements", () => {
+    const initial = createInitialViewState();
+    const selected = viewReducer(initial, {
+      type: "setSelection",
+      selectedElements: [{ kind: "node", id: "node-1" }],
+    });
+    const expanded = viewReducer(selected, { type: "toggleSelection", element: { kind: "text", id: "text-1" } });
+    const reduced = viewReducer(expanded, { type: "toggleSelection", element: { kind: "node", id: "node-1" } });
+
+    expect(expanded.selectedElements).toEqual([{ kind: "node", id: "node-1" }, { kind: "text", id: "text-1" }]);
+    expect(reduced.selectedElements).toEqual([{ kind: "text", id: "text-1" }]);
+  });
+
+  it("tracks an in-progress marquee selection", () => {
+    const initial = createInitialViewState();
+    const selectionBox = { start: { x: 20, y: 30 }, end: { x: 100, y: 90 } };
+    const selecting = viewReducer(initial, { type: "setSelectionBox", selectionBox });
+    const finished = viewReducer(selecting, { type: "setSelectionBox", selectionBox: null });
+
+    expect(selecting.selectionBox).toEqual(selectionBox);
+    expect(finished.selectionBox).toBeNull();
+  });
 });
