@@ -48,10 +48,17 @@ export function Canvas() {
       dispatchView({ type: "setConnectionDraft", connectionDraft: null });
       return;
     }
-    const pointerPosition = getPointerPosition(event);
-    if (!pointerPosition) return;
-    event.currentTarget.setPointerCapture(event.pointerId);
-    dispatchView({ type: "setPanning", panning: { pointerPosition, startPosition: view.pan } });
+
+    if (view.mode === "move") {
+      const pointerPosition = getPointerPosition(event);
+      if (!pointerPosition) return;
+      event.currentTarget.setPointerCapture(event.pointerId);
+      dispatchView({ type: "setPanning", panning: { pointerPosition, startPosition: view.pan } });
+      dispatchView({ type: "setSelectedSurface", surfaceId: null });
+      closeMenu();
+      return;
+    }
+
     dispatchView({ type: "setSelectedSurface", surfaceId: null });
     closeMenu();
   };
@@ -76,7 +83,7 @@ export function Canvas() {
   const handleElementPointerDown = (event: PointerEvent<SVGGraphicsElement>, kind: "node" | "text" | "surface", element: Node | TextElement | Surface) => {
     if (event.button !== 0) return;
     event.stopPropagation();
-    if (view.connectionDraft) return;
+    if (view.mode === "move" || view.connectionDraft) return;
     const gridPosition = getGridPosition(event);
     if (!gridPosition) return;
     const origin = kind === "surface"

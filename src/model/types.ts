@@ -98,12 +98,15 @@ export type DocumentState = {
   surfaces: Surface[];
 };
 
+export type ViewMode = "selection" | "move";
+
 export type ViewState = {
   hoverPos: Point;
   isHovering: boolean;
   dragging: DraggingElement | null;
   resizingSurface: ResizingSurface | null;
   selectedSurfaceId: string | null;
+  mode: ViewMode;
   pan: Point;
   panning: PanState | null;
   zoomIndex: number;
@@ -156,6 +159,7 @@ export type ViewAction =
   | { type: "setDragging"; dragging: DraggingElement | null }
   | { type: "setPan"; pan: Point }
   | { type: "setPanning"; panning: PanState | null }
+  | { type: "setMode"; mode: ViewMode }
   | { type: "zoomIn"; center: Point }
   | { type: "zoomOut"; center: Point }
   | { type: "setView"; pan: Point; zoomIndex: number }

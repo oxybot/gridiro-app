@@ -1,4 +1,4 @@
-import { Fullscreen, ZoomIn, ZoomOut } from "lucide-react";
+import { Fullscreen, MousePointer2, Move, ZoomIn, ZoomOut } from "lucide-react";
 import { zoomLevels } from "../model/geometry";
 import { useViewDispatch, useViewState } from "../state/DiagramProvider";
 
@@ -26,6 +26,24 @@ export function ViewToolbar({
 
   return (
     <div className="toolbar toolbar-view" onClick={(event) => event.stopPropagation()}>
+      <button
+        type="button"
+        onClick={() => dispatchView({ type: "setMode", mode: "selection" })}
+        aria-label="Selection mode"
+        title="Selection mode"
+        aria-pressed={viewState.mode === "selection"}
+      >
+        <MousePointer2 size={16} aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        onClick={() => dispatchView({ type: "setMode", mode: "move" })}
+        aria-label="Move mode"
+        title="Move mode"
+        aria-pressed={viewState.mode === "move"}
+      >
+        <Move size={16} aria-hidden="true" />
+      </button>
       <button type="button" onClick={() => zoomFromCenter("zoomOut")} disabled={zoomIndex === 0} aria-label="Zoom out">
         <ZoomOut size={16} aria-hidden="true" />
       </button>

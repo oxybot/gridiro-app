@@ -7,6 +7,7 @@ export const createInitialViewState = (): ViewState => ({
   dragging: null,
   resizingSurface: null,
   selectedSurfaceId: null,
+  mode: "selection",
   pan: { x: 0, y: 0 },
   panning: null,
   zoomIndex: defaultZoomIndex,
@@ -53,6 +54,8 @@ export const viewReducer = (state: ViewState, action: ViewAction): ViewState => 
       return { ...state, pan: action.pan };
     case "setPanning":
       return { ...state, panning: action.panning };
+    case "setMode":
+      return { ...state, mode: action.mode };
     case "zoomIn":
       return zoomToIndex(state, state.zoomIndex + 1, action.center);
     case "zoomOut":
