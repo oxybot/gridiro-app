@@ -1,5 +1,5 @@
-@import "open-props/postcss/style";
-@import "open-props/postcss/normalize";
+@import "open-props/style";
+@import "open-props/normalize";
 
 #root {
   height: 100dvh;
