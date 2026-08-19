@@ -44,6 +44,7 @@ export function ViewToolbar({
       >
         <Move size={16} aria-hidden="true" />
       </button>
+      <div className="toolbar-separator" aria-hidden="true" />
       <button type="button" onClick={() => zoomFromCenter("zoomOut")} disabled={zoomIndex === 0} aria-label="Zoom out">
         <ZoomOut size={16} aria-hidden="true" />
       </button>
