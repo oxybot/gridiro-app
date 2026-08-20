@@ -111,6 +111,13 @@ export type SelectionBox = {
   end: Point;
 };
 
+export type BoundType = {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+};
+
 export type ViewState = {
   hoverPos: Point;
   isHovering: boolean;

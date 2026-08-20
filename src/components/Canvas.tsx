@@ -3,12 +3,13 @@ import { NodeLabel } from "./NodeLabel";
 import { TextLabel } from "./TextLabel";
 import { SurfaceShape } from "./SurfaceShape";
 import { ConnectionLine } from "./ConnectionLine";
-import type { Connection, Node, SelectedElement, Surface, SurfaceCorner, TextElement } from "../model/types";
-import { createNode } from "../model/node";
+import type { BoundType, Connection, Node, SelectedElement, Surface, SurfaceCorner, TextElement } from "../model/types";
+import { createNode, getNodeBounds } from "../model/node";
 import { createConnection } from "../model/connection";
 import { grid, midHeight, midWidth, snapToIsoGrid, zoomLevels } from "../model/geometry";
 import { useDocumentDispatch, useDocumentState, useViewDispatch, useViewState } from "../state/DiagramProvider";
 import { getSurfaceBounds } from "../model/surface";
+import { getTextBounds } from "../model/text";
 
 export function Canvas() {
   const documentState = useDocumentState();
@@ -48,29 +49,18 @@ export function Canvas() {
       ? { x: (element as Surface).x1, y: (element as Surface).y1 }
       : { x: (element as Node | TextElement).x, y: (element as Node | TextElement).y };
 
-  const getElementBounds = (kind: SelectedElement["kind"], element: Node | TextElement | Surface) => {
-    if (kind === "surface") {
-      return getSurfaceBounds(element as Surface);
-    }
-
-    const point = element as Node | TextElement;
-    return kind === "node"
-      ? { minX: point.x - midWidth, minY: point.y - midHeight, maxX: point.x + midWidth, maxY: point.y + midHeight }
-      : { minX: point.x - grid.width, minY: point.y - grid.height, maxX: point.x + grid.width, maxY: point.y + grid.height };
-  };
-
   const getMarqueeSelection = (start: { x: number; y: number }, end: { x: number; y: number }) => {
     const bounds = { minX: Math.min(start.x, end.x), minY: Math.min(start.y, end.y), maxX: Math.max(start.x, end.x), maxY: Math.max(start.y, end.y) };
-    const isContained = (elementBounds: ReturnType<typeof getElementBounds>) =>
+    const isContained = (elementBounds: BoundType) =>
       elementBounds.minX >= bounds.minX
       && elementBounds.minY >= bounds.minY
       && elementBounds.maxX <= bounds.maxX
       && elementBounds.maxY <= bounds.maxY;
 
     return [
-      ...documentState.nodes.filter((node) => isContained(getElementBounds("node", node))).map((node) => ({ kind: "node" as const, id: node.id })),
-      ...documentState.texts.filter((text) => isContained(getElementBounds("text", text))).map((text) => ({ kind: "text" as const, id: text.id })),
-      ...documentState.surfaces.filter((surface) => isContained(getElementBounds("surface", surface))).map((surface) => ({ kind: "surface" as const, id: surface.id })),
+      ...documentState.nodes.filter((node) => isContained(getNodeBounds(node))).map((node) => ({ kind: "node" as const, id: node.id })),
+      ...documentState.texts.filter((text) => isContained(getTextBounds(text))).map((text) => ({ kind: "text" as const, id: text.id })),
+      ...documentState.surfaces.filter((surface) => isContained(getSurfaceBounds(surface))).map((surface) => ({ kind: "surface" as const, id: surface.id })),
     ];
   };
 
