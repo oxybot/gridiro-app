@@ -1,6 +1,6 @@
 import type { MouseEvent, PointerEvent } from "react";
 import { NodeLabel } from "./NodeLabel";
-import { TextLabel } from "./TextLabel";
+import { TextShape } from "./TextShape";
 import { SurfaceShape } from "./SurfaceShape";
 import { ConnectionLine } from "./ConnectionLine";
 import type { BoundType, Connection, Node, SelectedElement, Surface, SurfaceCorner, TextElement } from "../model/types";
@@ -469,7 +469,7 @@ export function Canvas() {
 
         {documentState.texts.map((text) => (
           <g key={text.id} className="text-element" transform={`translate(${text.x} ${text.y})`}>
-            <TextLabel
+            <TextShape
               text={text}
               selected={view.selectedElements.some((selected) => selected.kind === "text" && selected.id === text.id) || (view.menu.isOpen && view.menu.kind === "text" && view.menu.text?.id === text.id) || (view.editing?.kind === "text" && view.editing.text.id === text.id)}
               onPointerDown={(event) => handleElementPointerDown(event, "text", text)}

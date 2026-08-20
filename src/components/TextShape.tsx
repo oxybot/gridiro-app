@@ -6,7 +6,7 @@ import { grid } from "../model/geometry";
 const textPaddingX = 6;
 const textPaddingY = 4;
 
-type TextLabelProps = {
+type TextShapeProps = {
   text: TextElement;
   selected: boolean;
   onPointerDown: (event: PointerEvent<SVGRectElement>) => void;
@@ -15,7 +15,7 @@ type TextLabelProps = {
   onContextMenu: (event: MouseEvent<SVGRectElement>) => void;
 };
 
-export function TextLabel({ text, selected, onPointerDown, onPointerMove, onPointerUp, onContextMenu }: TextLabelProps) {
+export function TextShape({ text, selected, onPointerDown, onPointerMove, onPointerUp, onContextMenu }: TextShapeProps) {
   const textRef = useRef<SVGTextElement>(null);
   const [box, setBox] = useState({ width: 0, height: 0 });
 
