@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Gridiro
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import type { MouseEvent, PointerEvent } from "react";
 import { NodeLabel } from "./NodeLabel";
 import { TextShape } from "./TextShape";
@@ -7,7 +10,7 @@ import type { BoundType, Connection, Node, SelectedElement, Surface, SurfaceCorn
 import { createNode, getNodeBounds } from "../model/node";
 import { createConnection } from "../model/connection";
 import { grid, midHeight, midWidth, snapToIsoGrid, zoomLevels } from "../model/geometry";
-import { useDocumentDispatch, useDocumentState, useViewDispatch, useViewState } from "../state/DiagramProvider";
+import { useDocumentDispatch, useDocumentState, useViewDispatch, useViewState } from "../state";
 import { getSurfaceBounds } from "../model/surface";
 import { getTextBounds } from "../model/text";
 

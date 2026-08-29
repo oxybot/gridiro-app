@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Gridiro
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { useEffect, useRef } from "react";
 import { Canvas } from "./components/Canvas";
 import { ContextMenu } from "./components/ContextMenu";
@@ -5,7 +8,7 @@ import { DocumentToolbar } from "./components/DocumentToolbar";
 import { ElementEditor } from "./components/ElementEditor";
 import { ViewToolbar } from "./components/ViewToolbar";
 import { defaultZoomIndex, getContentBounds, zoomLevels } from "./model/geometry";
-import { DiagramProvider, useDocumentDispatch, useDocumentState, useViewDispatch } from "./state/DiagramProvider";
+import { DiagramProvider, useDocumentDispatch, useDocumentState, useViewDispatch } from "./state";
 
 const viewportPadding = 40;
 

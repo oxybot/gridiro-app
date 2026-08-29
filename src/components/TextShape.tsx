@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Gridiro
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { useLayoutEffect, useRef, useState } from "react";
 import type { MouseEvent, PointerEvent } from "react";
 import type { TextElement } from "../model/types";

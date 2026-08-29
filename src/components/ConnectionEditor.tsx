@@ -1,6 +1,9 @@
+// Copyright (C) 2026 Gridiro
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import type { MouseEvent } from "react";
 import type { Connection, ConnectionStyle, ElementColor } from "../model/types";
-import { useDocumentDispatch, useViewDispatch } from "../state/DiagramProvider";
+import { useDocumentDispatch, useViewDispatch } from "../state";
 
 type ConnectionEditorProps = {
   connection: Connection;

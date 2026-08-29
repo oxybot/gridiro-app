@@ -1,6 +1,9 @@
+// Copyright (C) 2026 Gridiro
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { Fullscreen, MousePointer2, Move, ZoomIn, ZoomOut } from "lucide-react";
 import { zoomLevels } from "../model/geometry";
-import { useViewDispatch, useViewState } from "../state/DiagramProvider";
+import { useViewDispatch, useViewState } from "../state";
 
 type ViewToolbarProps = {
   diagramRef: React.RefObject<HTMLElement | null>;

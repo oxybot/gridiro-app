@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Gridiro
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { describe, expect, it } from "vitest";
 import { deserializeDocument, emptyDocument, serializeDocument } from "./serialization";
 import type { DocumentState } from "./types";

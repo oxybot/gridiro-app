@@ -1,8 +1,9 @@
 {
   "name": "gridiro-hackathon",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
+  "license": "GPL-3.0-or-later",
   "scripts": {
     "dev": "vite --host",
     "build": "tsc -b && vite build",

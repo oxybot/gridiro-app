@@ -1,8 +1,11 @@
+// Copyright (C) 2026 Gridiro
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { NodeEditor } from "./NodeEditor";
 import { TextEditor } from "./TextEditor";
 import { SurfaceEditor } from "./SurfaceEditor";
 import { ConnectionEditor } from "./ConnectionEditor";
-import { useViewState } from "../state/DiagramProvider";
+import { useViewState } from "../state";
 
 export function ElementEditor() {
   const { editing } = useViewState();

@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Gridiro
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import type { Point, ViewAction, ViewState } from "../model/types";
 import { defaultZoomIndex, zoomLevels } from "../model/geometry";
 

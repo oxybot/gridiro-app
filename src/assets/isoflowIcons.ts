@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Gridiro
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import blockUrl from "./isoflow/block.svg";
 import cacheUrl from "./isoflow/cache.svg";
 import cardTerminalUrl from "./isoflow/cardterminal.svg";

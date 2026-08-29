@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Gridiro
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import type { DocumentAction, DocumentState } from "../model/types";
 import { deserializeDocument, emptyDocument, serializeDocument } from "../model/serialization";
 

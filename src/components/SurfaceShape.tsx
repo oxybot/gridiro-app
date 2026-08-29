@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Gridiro
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import type { MouseEvent, PointerEvent } from "react";
 import type { Surface, SurfaceCorner } from "../model/types";
 import { grid, midHeight, midWidth } from "../model/geometry";

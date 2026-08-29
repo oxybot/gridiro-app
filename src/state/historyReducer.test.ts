@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Gridiro
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { describe, expect, it } from "vitest";
 import type { DocumentState, Node } from "../model/types";
 import { createDocumentHistory, historyReducer, maxHistoryLength } from "./historyReducer";

@@ -1,7 +1,10 @@
+// Copyright (C) 2026 Gridiro
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { Download, Redo2, Undo2, Upload } from "lucide-react";
 import { useRef, type ChangeEvent } from "react";
 import { deserializeDocument, serializeDocument } from "../model/serialization";
-import { useDocumentDispatch, useDocumentHistory, useDocumentState, useViewDispatch } from "../state/DiagramProvider";
+import { useDocumentDispatch, useDocumentHistory, useDocumentState, useViewDispatch } from "../state";
 
 export function DocumentToolbar() {
   const documentState = useDocumentState();

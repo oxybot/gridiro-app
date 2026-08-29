@@ -1,8 +1,11 @@
+// Copyright (C) 2026 Gridiro
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { createNode } from "../model/node";
 import { createText } from "../model/text";
 import { createSurface } from "../model/surface";
 import { zoomLevels } from "../model/geometry";
-import { useDocumentDispatch, useViewDispatch, useViewState } from "../state/DiagramProvider";
+import { useDocumentDispatch, useViewDispatch, useViewState } from "../state";
 
 export function ContextMenu() {
   const view = useViewState();

@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Gridiro
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { isoflowIcons } from "../assets/isoflowIcons";
 import { midWidth, midHeight } from "./geometry";
 import type { Node } from "./types";

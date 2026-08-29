@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Gridiro
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import type { MouseEvent } from "react";
 import { grid, midHeight, midWidth } from "../model/geometry";
 import type { ElementColor, Point } from "../model/types";
