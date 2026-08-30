@@ -1,6 +1,12 @@
+/**
+ * External libraries
+ */
 @import "open-props/style";
 @import "open-props/normalize/light";
 
+/**
+ * Project styles
+ */
 @import "./styles/app.css";
 @import "./styles/toolbar.css";
 @import "./styles/diagram.css";

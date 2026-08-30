@@ -7,7 +7,9 @@
   "scripts": {
     "dev": "vite --host",
     "build": "tsc -b && vite build",
-    "lint": "oxlint",
+    "lint": "pnpm run lint:ts && pnpm run lint:css",
+    "lint:ts": "oxlint",
+    "lint:css": "stylelint 'src/**/*.css'",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -27,6 +29,8 @@
     "@vitejs/plugin-react": "^6.0.4",
     "@vitest/coverage-v8": "^4.1.10",
     "oxlint": "^1.75.0",
+    "stylelint": "^17.14.1",
+    "stylelint-config-standard": "^40.0.0",
     "typescript": "~6.0.2",
     "vite": "^8.2.0",
     "vitest": "^4.1.10"
