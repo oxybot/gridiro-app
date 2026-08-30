@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Gridiro
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import type { DocumentAction, DocumentDispatchAction, DocumentState, HistoryAction } from "../model/types";
+import type { DocumentAction, DocumentDispatchAction, DocumentState } from "../model/types";
 import { documentReducer } from "./documentReducer";
 
 export const maxHistoryLength = 50;
@@ -20,92 +20,77 @@ export const createDocumentHistory = (document: DocumentState): DocumentHistory 
   moveStart: null,
 });
 
-const isHistoryAction = (action: DocumentDispatchAction): action is HistoryAction =>
-  action.type === "undo" || action.type === "redo";
-
 export const historyReducer = (state: DocumentHistory, action: DocumentDispatchAction): DocumentHistory => {
-  if (action.type === "startMove") {
-    return state.moveStart ? state : { ...state, moveStart: state.present };
-  }
+  switch (action.type) {
+    case "startMove":
+    case "startEdit":
+      return state.moveStart ? state : { ...state, moveStart: state.present };
 
-  if (action.type === "startEdit") {
-    return state.moveStart ? state : { ...state, moveStart: state.present };
-  }
+    case "previewMoveNode":
+      return { ...state, present: documentReducer(state.present, { type: "moveNode", nodeId: action.nodeId, position: action.position }) };
 
-  if (action.type === "previewMoveNode" || action.type === "previewMoveText" || action.type === "previewMoveSurface") {
-    const documentAction = action.type === "previewMoveNode"
-      ? { type: "moveNode" as const, nodeId: action.nodeId, position: action.position }
-      : action.type === "previewMoveText"
-        ? { type: "moveText" as const, textId: action.textId, position: action.position }
-        : { type: "moveSurface" as const, surfaceId: action.surfaceId, position: action.position };
-    return { ...state, present: documentReducer(state.present, documentAction) };
-  }
+    case "previewMoveText":
+      return { ...state, present: documentReducer(state.present, { type: "moveText", textId: action.textId, position: action.position }) };
 
-  if (action.type === "previewUpdateNode" || action.type === "previewUpdateText" || action.type === "previewUpdateSurface" || action.type === "previewUpdateConnection") {
-    const documentAction = action.type === "previewUpdateNode"
-      ? { type: "updateNode" as const, nodeId: action.nodeId, changes: action.changes }
-      : action.type === "previewUpdateText"
-        ? { type: "updateText" as const, textId: action.textId, changes: action.changes }
-        : action.type === "previewUpdateSurface"
-          ? { type: "updateSurface" as const, surfaceId: action.surfaceId, changes: action.changes }
-          : { type: "updateConnection" as const, connectionId: action.connectionId, changes: action.changes };
-    return { ...state, present: documentReducer(state.present, documentAction) };
-  }
+    case "previewMoveSurface":
+      return { ...state, present: documentReducer(state.present, { type: "moveSurface", surfaceId: action.surfaceId, position: action.position }) };
 
-  if (action.type === "finishMove") {
-    if (!state.moveStart || state.moveStart === state.present) {
-      return { ...state, moveStart: null };
+    case "previewUpdateNode":
+      return { ...state, present: documentReducer(state.present, { type: "updateNode", nodeId: action.nodeId, changes: action.changes }) };
+
+    case "previewUpdateText":
+      return { ...state, present: documentReducer(state.present, { type: "updateText", textId: action.textId, changes: action.changes }) };
+
+    case "previewUpdateSurface":
+      return { ...state, present: documentReducer(state.present, { type: "updateSurface", surfaceId: action.surfaceId, changes: action.changes }) };
+
+    case "previewUpdateConnection":
+      return { ...state, present: documentReducer(state.present, { type: "updateConnection", connectionId: action.connectionId, changes: action.changes }) };
+
+    case "finishMove":
+    case "finishEdit":
+      if (!state.moveStart || state.moveStart === state.present) {
+        return { ...state, moveStart: null };
+      }
+      return {
+        past: [...state.past, state.moveStart].slice(-maxHistoryLength),
+        present: state.present,
+        future: [],
+        moveStart: null,
+      };
+
+    case "undo": {
+      if (state.past.length === 0) return state;
+      const previous = state.past[state.past.length - 1];
+      return {
+        past: state.past.slice(0, -1),
+        present: previous,
+        future: [state.present, ...state.future],
+        moveStart: null,
+      };
     }
-    return {
-      past: [...state.past, state.moveStart].slice(-maxHistoryLength),
-      present: state.present,
-      future: [],
-      moveStart: null,
-    };
-  }
 
-  if (action.type === "finishEdit") {
-    if (!state.moveStart || state.moveStart === state.present) {
-      return { ...state, moveStart: null };
+    case "redo": {
+      if (state.future.length === 0) return state;
+      const next = state.future[0];
+      return {
+        past: [...state.past, state.present].slice(-maxHistoryLength),
+        present: next,
+        future: state.future.slice(1),
+        moveStart: null,
+      };
     }
-    return {
-      past: [...state.past, state.moveStart].slice(-maxHistoryLength),
-      present: state.present,
-      future: [],
-      moveStart: null,
-    };
+
+    default: {
+      const present = documentReducer(state.present, action as DocumentAction);
+      if (present === state.present) return state;
+
+      return {
+        past: [...state.past, state.present].slice(-maxHistoryLength),
+        present,
+        future: [],
+        moveStart: null,
+      };
+    }
   }
-
-  if (action.type === "undo") {
-    if (state.past.length === 0) return state;
-    const previous = state.past[state.past.length - 1];
-    return {
-      past: state.past.slice(0, -1),
-      present: previous,
-      future: [state.present, ...state.future],
-      moveStart: null,
-    };
-  }
-
-  if (action.type === "redo") {
-    if (state.future.length === 0) return state;
-    const next = state.future[0];
-    return {
-      past: [...state.past, state.present].slice(-maxHistoryLength),
-      present: next,
-      future: state.future.slice(1),
-      moveStart: null,
-    };
-  }
-
-  if (isHistoryAction(action)) return state;
-  const present = documentReducer(state.present, action as DocumentAction);
-  if (present === state.present) return state;
-
-  return {
-    past: [...state.past, state.present].slice(-maxHistoryLength),
-    present,
-    future: [],
-    moveStart: null,
-  };
 };

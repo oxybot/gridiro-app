@@ -1,0 +1,26 @@
+.diagram-menu {
+  z-index: var(--layer-1);
+  display: grid;
+  gap: var(--size-1);
+  padding: var(--size-2);
+
+  &.left {
+    transform: translate(var(--size-5), -50%);
+  }
+
+  &.right {
+    transform: translate(calc(-100% - var(--size-5)), -50%);
+  }
+
+  button {
+    border: none;
+    background: transparent;
+    text-align: left;
+    border-radius: var(--radius-2);
+    padding: 0.35rem 0.55rem;
+
+    &:hover {
+      background-color: var(--gray-2);
+    }
+  }
+}

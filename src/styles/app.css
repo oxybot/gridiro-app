@@ -1,0 +1,23 @@
+#root {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+section {
+  margin: var(--size-2) var(--size-4);
+}
+
+button {
+  cursor: pointer;
+}
+
+.toolbar,
+.diagram-menu,
+.editor {
+  position: absolute;
+  border: var(--border-size-2) var(--gray-4) solid;
+  border-radius: var(--radius-2);
+  background-color: var(--gray-0);
+  box-shadow: var(--shadow-3);
+}
