@@ -60,6 +60,7 @@ function Diagram() {
 
   useEffect(() => {
     fitToContent();
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- Fit only the initially loaded document.
   }, []);
 
   return (
