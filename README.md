@@ -4,7 +4,7 @@ Gridiro is a web app for creating good-looking application architecture diagrams
 
 > Live: [gridiro.app](https://gridiro.app)
 >
-> This is an early alpha — expect rough edges and breaking changes.
+> This is an early alpha - expect rough edges and breaking changes.
 
 ## Features
 
@@ -23,10 +23,10 @@ pnpm dev
 
 ## Scripts
 
-- `pnpm dev` — start the Vite dev server
-- `pnpm build` — type-check and build for production
-- `pnpm lint` — run Oxlint
-- `pnpm preview` — preview the production build locally
+- `pnpm dev` - start the Vite dev server
+- `pnpm build` - type-check and build for production
+- `pnpm lint` - run Oxlint
+- `pnpm preview` - preview the production build locally
 
 ## Project structure
 
