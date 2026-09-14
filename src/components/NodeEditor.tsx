@@ -1,8 +1,8 @@
 // Copyright (C) 2026 Gridiro
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import type { MouseEvent } from "react";
-import { isoflowIcons } from "../assets/isoflowIcons";
+import { useEffect, useState, type MouseEvent } from "react";
+import type { IsoflowIcon } from "../assets/isoflowIcons";
 import type { Node } from "../model/types";
 import { useDocumentDispatch, useViewDispatch } from "../state";
 
@@ -13,6 +13,18 @@ type NodeEditorProps = {
 export function NodeEditor({ node }: NodeEditorProps) {
   const dispatchView = useViewDispatch();
   const dispatchDocument = useDocumentDispatch();
+  // Loaded on demand so the full icon set isn't fetched/parsed until the editor opens.
+  const [icons, setIcons] = useState<IsoflowIcon[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    import("../assets/isoflowIcons").then((module) => {
+      if (!cancelled) setIcons(module.isoflowIcons.icons);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const updateNode = (changes: Partial<Node>) => {
     dispatchView({ type: "setEditing", editing: { kind: "node", node: { ...node, ...changes } } });
     dispatchDocument({ type: "previewUpdateNode", nodeId: node.id, changes });
@@ -37,7 +49,7 @@ export function NodeEditor({ node }: NodeEditorProps) {
       <fieldset>
         <legend>Icon</legend>
         <div className="options options-icons">
-          {isoflowIcons.icons.map((icon) => (
+          {icons?.map((icon) => (
             <button
               className={node.icon.id === icon.id ? "selected" : ""}
               type="button"
