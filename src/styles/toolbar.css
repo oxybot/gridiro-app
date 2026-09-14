@@ -24,33 +24,33 @@
       opacity: 0.4;
       cursor: default;
     }
+  }
 
-    &.toolbar-document {
-      z-index: var(--layer-1);
-      top: var(--size-3);
-      right: var(--size-3);
+  &.toolbar-document {
+    z-index: var(--layer-1);
+    top: var(--size-3);
+    right: var(--size-3);
+  }
+
+  &.toolbar-view {
+    z-index: var(--layer-1);
+    right: var(--size-3);
+    bottom: var(--size-3);
+    align-items: center;
+    gap: var(--size-2);
+    padding: var(--size-1) var(--size-2);
+    font-size: var(--font-size-1);
+
+    .toolbar-separator {
+      align-self: stretch;
+      width: var(--border-size-1);
+      margin: 0 var(--size-1);
+      background-color: var(--gray-4);
     }
 
-    &.toolbar-view {
-      z-index: var(--layer-1);
-      right: var(--size-3);
-      bottom: var(--size-3);
-      align-items: center;
-      gap: var(--size-2);
-      padding: var(--size-1) var(--size-2);
-      font-size: var(--font-size-1);
-
-      .toolbar-separator {
-        align-self: stretch;
-        width: var(--border-size-1);
-        margin: 0 var(--size-1);
-        background-color: var(--gray-4);
-      }
-
-      span {
-        min-width: 2.5em;
-        text-align: center;
-      }
+    span {
+      min-width: 2.5em;
+      text-align: center;
     }
   }
 }
