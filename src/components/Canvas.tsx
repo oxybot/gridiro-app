@@ -5,7 +5,7 @@ import type { MouseEvent, PointerEvent } from "react";
 import { NodeLabel } from "./NodeLabel";
 import { TextShape } from "./TextShape";
 import { SurfaceShape } from "./SurfaceShape";
-import { ConnectionLine, ConnectionLineDrafted } from "./ConnectionLine";
+import { ConnectionShape, ConnectionDraftShape } from "./ConnectionShape";
 import type { Connection, Node, SelectedElement, Surface, SurfaceCorner, TextElement } from "../model/types";
 import { createConnection } from "../model/connection";
 import { grid, midHeight, midWidth, snapToIsoGrid, zoomLevels } from "../model/geometry";
@@ -212,27 +212,26 @@ export function Canvas() {
       <g transform={`translate(${view.pan.x} ${view.pan.y}) scale(${zoom})`}>
 
         {documentState.surfaces.map((surface) => (
-          <g key={surface.id}>
-            <SurfaceShape
-              surface={surface}
-              selected={view.selectedSurfaceId === surface.id || view.selectedElements.some((selected) => selected.kind === "surface" && selected.id === surface.id)}
-              showHandles={view.selectedSurfaceId === surface.id || (view.selectedElements.length === 1 && view.selectedElements[0].kind === "surface" && view.selectedElements[0].id === surface.id)}
-              onBodyPointerDown={(event) => handleElementPointerDown(event, "surface", surface)}
-              onBodyPointerMove={handleElementPointerMove}
-              onBodyPointerUp={handleElementPointerUp}
-              onContextMenu={(event) => handleSurfaceContextMenu(event, surface)}
-              onCornerPointerDown={(event, corner) => handleSurfaceCornerPointerDown(event, surface, corner)}
-              onCornerPointerMove={handleSurfaceCornerPointerMove}
-              onCornerPointerUp={handleSurfaceCornerPointerUp}
-            />
-          </g>
+          <SurfaceShape
+            key={surface.id}
+            surface={surface}
+            selected={view.selectedSurfaceId === surface.id || view.selectedElements.some((selected) => selected.kind === "surface" && selected.id === surface.id)}
+            showHandles={view.selectedSurfaceId === surface.id || (view.selectedElements.length === 1 && view.selectedElements[0].kind === "surface" && view.selectedElements[0].id === surface.id)}
+            onBodyPointerDown={(event) => handleElementPointerDown(event, "surface", surface)}
+            onBodyPointerMove={handleElementPointerMove}
+            onBodyPointerUp={handleElementPointerUp}
+            onContextMenu={(event) => handleSurfaceContextMenu(event, surface)}
+            onCornerPointerDown={(event, corner) => handleSurfaceCornerPointerDown(event, surface, corner)}
+            onCornerPointerMove={handleSurfaceCornerPointerMove}
+            onCornerPointerUp={handleSurfaceCornerPointerUp}
+          />
         ))}
 
         <CanvasHover />
 
         {documentState.connections.map((connection) => {
           return (
-            <ConnectionLine
+            <ConnectionShape
               key={connection.id}
               connection={connection}
               selected={(view.menu.isOpen && view.menu.kind === "connection" && view.menu.connection?.id === connection.id) || (view.editing?.kind === "connection" && view.editing.connection.id === connection.id)}
@@ -241,12 +240,9 @@ export function Canvas() {
           );
         })}
 
-        {view.connectionDraft && (() => {
-
-          return (
-            <ConnectionLineDrafted connectionDraft={view.connectionDraft} />
-          );
-        })()}
+        {view.connectionDraft && (
+          <ConnectionDraftShape connectionDraft={view.connectionDraft} />
+        )}
 
         {view.menu.isOpen && view.menu.kind === "empty" && (
           <path

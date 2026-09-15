@@ -6,13 +6,13 @@ import { grid, midHeight, midWidth } from "../model/geometry";
 import type { Connection, ConnectionDraft } from "../model/types";
 import { useDocumentState } from "../state";
 
-type ConnectionLineProps = {
+type ConnectionShapeProps = {
   connection: Connection;
   selected?: boolean;
   onContextMenu?: (event: MouseEvent<SVGPathElement>) => void;
 };
 
-export function ConnectionLine({ connection, selected, onContextMenu }: ConnectionLineProps) {
+export function ConnectionShape({ connection, selected, onContextMenu }: ConnectionShapeProps) {
   const documentState = useDocumentState();
   const source = documentState.nodes.find((node) => node.id === connection.sourceId);
   const target = documentState.nodes.find((node) => node.id === connection.targetId);
@@ -51,11 +51,11 @@ export function ConnectionLine({ connection, selected, onContextMenu }: Connecti
   );
 }
 
-type ConnectionLineDraftProps = {
+type ConnectionDraftShapeProps = {
   connectionDraft: ConnectionDraft;
 };
 
-export function ConnectionLineDrafted({ connectionDraft }: ConnectionLineDraftProps) {
+export function ConnectionDraftShape({ connectionDraft }: ConnectionDraftShapeProps) {
   const documentState = useDocumentState();
 
   const source = documentState.nodes.find((node) => node.id === connectionDraft!.sourceId);
