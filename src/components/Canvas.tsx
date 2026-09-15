@@ -13,6 +13,7 @@ import { useDocumentDispatch, useDocumentState, useViewDispatch, useViewState } 
 import { usePosition } from "./hooks";
 import { CanvasSvg } from "./CanvasSvg";
 import { CanvasGrid } from "./CanvasGrid";
+import { CanvasHover } from "./CanvasHover";
 
 export function Canvas() {
   const documentState = useDocumentState();
@@ -209,12 +210,6 @@ export function Canvas() {
       <CanvasGrid />
 
       <g transform={`translate(${view.pan.x} ${view.pan.y}) scale(${zoom})`}>
-        <path
-          className="hover"
-          d={`M 0 ${midHeight} L ${midWidth} 0 ${grid.width} ${midHeight} ${midWidth} ${grid.height} 0 ${midHeight}`}
-          transform={`translate(${view.hoverPos.x - midWidth} ${view.hoverPos.y - midHeight})`}
-          style={{ opacity: view.isHovering && !view.dragging ? 1 : 0 }}
-        />
 
         {documentState.surfaces.map((surface) => (
           <g key={surface.id}>
@@ -232,6 +227,8 @@ export function Canvas() {
             />
           </g>
         ))}
+
+        <CanvasHover />
 
         {documentState.connections.map((connection) => {
           const source = documentState.nodes.find((node) => node.id === connection.sourceId);
@@ -253,6 +250,7 @@ export function Canvas() {
             />
           );
         })}
+
         {view.connectionDraft && (() => {
           const source = documentState.nodes.find((node) => node.id === view.connectionDraft!.sourceId);
           if (!source) {
