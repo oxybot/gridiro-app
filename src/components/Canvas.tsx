@@ -5,7 +5,7 @@ import type { MouseEvent, PointerEvent } from "react";
 import { NodeLabel } from "./NodeLabel";
 import { TextShape } from "./TextShape";
 import { SurfaceShape } from "./SurfaceShape";
-import { ConnectionLine } from "./ConnectionLine";
+import { ConnectionLine, ConnectionLineDrafted } from "./ConnectionLine";
 import type { Connection, Node, SelectedElement, Surface, SurfaceCorner, TextElement } from "../model/types";
 import { createConnection } from "../model/connection";
 import { grid, midHeight, midWidth, snapToIsoGrid, zoomLevels } from "../model/geometry";
@@ -231,20 +231,10 @@ export function Canvas() {
         <CanvasHover />
 
         {documentState.connections.map((connection) => {
-          const source = documentState.nodes.find((node) => node.id === connection.sourceId);
-          const target = documentState.nodes.find((node) => node.id === connection.targetId);
-          if (!source || !target) {
-            return null;
-          }
-
           return (
             <ConnectionLine
               key={connection.id}
-              source={source}
-              target={target}
-              color={connection.color}
-              dashed={connection.style === "dashed"}
-              label={connection.label}
+              connection={connection}
               selected={(view.menu.isOpen && view.menu.kind === "connection" && view.menu.connection?.id === connection.id) || (view.editing?.kind === "connection" && view.editing.connection.id === connection.id)}
               onContextMenu={(event) => handleConnectionContextMenu(event, connection)}
             />
@@ -252,13 +242,9 @@ export function Canvas() {
         })}
 
         {view.connectionDraft && (() => {
-          const source = documentState.nodes.find((node) => node.id === view.connectionDraft!.sourceId);
-          if (!source) {
-            return null;
-          }
 
           return (
-            <ConnectionLine source={source} target={view.connectionDraft.pointerPosition} draft />
+            <ConnectionLineDrafted connectionDraft={view.connectionDraft} />
           );
         })()}
 

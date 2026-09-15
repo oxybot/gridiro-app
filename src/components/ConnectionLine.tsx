@@ -3,20 +3,23 @@
 
 import type { MouseEvent } from "react";
 import { grid, midHeight, midWidth } from "../model/geometry";
-import type { ElementColor, Point } from "../model/types";
+import type { Connection, ConnectionDraft } from "../model/types";
+import { useDocumentState } from "../state";
 
 type ConnectionLineProps = {
-  source: Point;
-  target: Point;
-  color?: ElementColor;
-  dashed?: boolean;
-  label?: string;
+  connection: Connection;
   selected?: boolean;
-  draft?: boolean;
   onContextMenu?: (event: MouseEvent<SVGPathElement>) => void;
 };
 
-export function ConnectionLine({ source, target, color, dashed, label, selected, draft, onContextMenu }: ConnectionLineProps) {
+export function ConnectionLine({ connection, selected, onContextMenu }: ConnectionLineProps) {
+  const documentState = useDocumentState();
+  const source = documentState.nodes.find((node) => node.id === connection.sourceId);
+  const target = documentState.nodes.find((node) => node.id === connection.targetId);
+  if (!source || !target) {
+    return null;
+  }
+
   const deltaX = target.x - source.x;
   const deltaY = target.y - source.y;
   const a = deltaX / grid.width - deltaY / grid.height;
@@ -37,14 +40,44 @@ export function ConnectionLine({ source, target, color, dashed, label, selected,
         <path className="connection-hit" d={d} onContextMenu={onContextMenu} />
       )}
       <path
-        className={`connection${draft ? " draft" : ""}${dashed ? " dashed" : ""}${selected ? " selected" : ""}`}
-        style={color ? { stroke: color } : undefined}
+        className={`connection${connection.style === "dashed" ? " dashed" : ""}${selected ? " selected" : ""}`}
+        style={connection.color ? { stroke: connection.color } : undefined}
         d={d}
       />
-      {label && (
-        <text className="connection-label" x={midX} y={midY}>{label}</text>
+      {connection.label && (
+        <text className="connection-label" x={midX} y={midY}>{connection.label}</text>
       )}
     </g>
   );
 }
 
+type ConnectionLineDraftProps = {
+  connectionDraft: ConnectionDraft;
+};
+
+export function ConnectionLineDrafted({ connectionDraft }: ConnectionLineDraftProps) {
+  const documentState = useDocumentState();
+
+  const source = documentState.nodes.find((node) => node.id === connectionDraft!.sourceId);
+  if (!source) {
+    return null;
+  }
+
+  const target = connectionDraft.pointerPosition;
+
+  const deltaX = target.x - source.x;
+  const deltaY = target.y - source.y;
+  const a = deltaX / grid.width - deltaY / grid.height;
+  const b = deltaX / grid.width + deltaY / grid.height;
+
+  const d = a === 0 || b === 0
+    ? `M ${source.x} ${source.y} L ${target.x} ${target.y}`
+    : `M ${source.x} ${source.y}
+        l ${a * midWidth / 2} ${-a * midHeight / 2},
+          ${b * midWidth} ${b * midHeight},
+          ${a * midWidth / 2} ${-a * midHeight / 2}`;
+
+  return (
+    <path className="connection draft" d={d} />
+  );
+}
