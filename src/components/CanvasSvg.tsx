@@ -12,7 +12,7 @@ export function CanvasSvg({ children }: { children: ReactNode }) {
   const dispatchDocument = useDocumentDispatch();
   const view = useViewState();
   const dispatchView = useViewDispatch();
-  const [getCanvasPosition, getSnappedPosition] = usePosition(view);
+  const { getCanvasPosition, getSnappedPosition } = usePosition(view);
   const zoom = zoomLevels[view.zoomIndex];
 
   const handleMouseMove = (event: MouseEvent<SVGSVGElement>) => {

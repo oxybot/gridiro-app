@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Gridiro
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+import type { PointerEvent } from "react";
 import { snapToIsoGrid, zoomLevels } from "../model/geometry";
 import type { ViewState } from "../model/types";
 
@@ -16,6 +17,7 @@ function getCanvasPosition(event: { clientX: number; clientY: number; currentTar
 
 export function usePosition(view: ViewState) {
   const zoom = zoomLevels[view.zoomIndex];
+
   const getSnappedPosition = (event: { clientX: number; clientY: number; currentTarget: SVGElement }) => {
     const pointerPosition = getCanvasPosition(event);
     return pointerPosition
@@ -23,5 +25,10 @@ export function usePosition(view: ViewState) {
       : null;
   };
 
-  return [getCanvasPosition, getSnappedPosition];
+  const getGridPosition = (event: PointerEvent<SVGElement>) => {
+    const pointerPosition = getCanvasPosition(event);
+    return pointerPosition ? { x: (pointerPosition.x - view.pan.x) / zoom, y: (pointerPosition.y - view.pan.y) / zoom } : null;
+  };
+
+  return { getCanvasPosition, getSnappedPosition, getGridPosition };
 }
