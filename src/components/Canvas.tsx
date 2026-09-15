@@ -7,12 +7,14 @@ import { TextShape } from "./TextShape";
 import { SurfaceShape } from "./SurfaceShape";
 import { ConnectionLine } from "./ConnectionLine";
 import type { BoundType, Connection, Node, SelectedElement, Surface, SurfaceCorner, TextElement } from "../model/types";
-import { createNode, getNodeBounds } from "../model/node";
+import { getNodeBounds } from "../model/node";
 import { createConnection } from "../model/connection";
 import { grid, midHeight, midWidth, snapToIsoGrid, zoomLevels } from "../model/geometry";
 import { useDocumentDispatch, useDocumentState, useViewDispatch, useViewState } from "../state";
 import { getSurfaceBounds } from "../model/surface";
 import { getTextBounds } from "../model/text";
+import { usePosition } from "./hooks";
+import { CanvasSvg } from "./CanvasSvg";
 
 export function Canvas() {
   const documentState = useDocumentState();
@@ -21,36 +23,11 @@ export function Canvas() {
   const dispatchView = useViewDispatch();
   const zoom = zoomLevels[view.zoomIndex];
 
-  const getCanvasPosition = (event: { clientX: number; clientY: number; currentTarget: SVGElement }) => {
-    const svg = event.currentTarget.ownerSVGElement ?? event.currentTarget;
-    if (!svg) {
-      return null;
-    }
-
-    const rect = svg.getBoundingClientRect();
-    return { x: event.clientX - rect.left, y: event.clientY - rect.top };
-  };
+  const [getCanvasPosition] = usePosition(view);
 
   const getGridPosition = (event: PointerEvent<SVGElement>) => {
     const pointerPosition = getCanvasPosition(event);
     return pointerPosition ? { x: (pointerPosition.x - view.pan.x) / zoom, y: (pointerPosition.y - view.pan.y) / zoom } : null;
-  };
-
-  const getSnappedPosition = (event: { clientX: number; clientY: number; currentTarget: SVGElement }) => {
-    const pointerPosition = getCanvasPosition(event);
-    return pointerPosition
-      ? snapToIsoGrid({ x: (pointerPosition.x - view.pan.x) / zoom, y: (pointerPosition.y - view.pan.y) / zoom })
-      : null;
-  };
-
-  const handleMouseMove = (event: MouseEvent<SVGSVGElement>) => {
-    const pointerPosition = getCanvasPosition(event);
-    if (!pointerPosition) return;
-    const position = { x: (pointerPosition.x - view.pan.x) / zoom, y: (pointerPosition.y - view.pan.y) / zoom };
-    dispatchView({ type: "setHoverPos", position: snapToIsoGrid(position) });
-    if (view.connectionDraft) {
-      dispatchView({ type: "setConnectionDraft", connectionDraft: { ...view.connectionDraft, pointerPosition: position } });
-    }
   };
 
   const closeMenu = () => dispatchView({ type: "closeMenu" });
@@ -259,30 +236,6 @@ export function Canvas() {
     });
   };
 
-  const handleContextMenu = (event: MouseEvent<SVGSVGElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const rect = event.currentTarget.getBoundingClientRect();
-    const snappedPoint = getSnappedPosition(event);
-    if (!snappedPoint) return;
-    const node = documentState.nodes.find((currentNode) => currentNode.x === snappedPoint.x && currentNode.y === snappedPoint.y);
-    const text = !node ? documentState.texts.find((currentText) => currentText.x === snappedPoint.x && currentText.y === snappedPoint.y) : undefined;
-    dispatchView({ type: "setHoverPos", position: snappedPoint });
-    dispatchView({ type: "setEditing", editing: null });
-    dispatchView({ type: "setSelection", selectedElements: [] });
-    dispatchView({
-      type: "setMenu", menu: {
-        isOpen: true,
-        x: snappedPoint.x,
-        y: snappedPoint.y,
-        side: snappedPoint.x > 2 * rect.width / 3 ? "right" : "left",
-        kind: node ? "node" : text ? "text" : "empty",
-        node,
-        text,
-      }
-    });
-  };
-
   // Right-clicking anywhere on a surface's top face opens its own menu instead of the empty-cell menu.
   const handleSurfaceContextMenu = (event: MouseEvent<SVGPathElement>, surface: Surface) => {
     event.preventDefault();
@@ -330,28 +283,8 @@ export function Canvas() {
     });
   };
 
-  const handleDoubleClick = (event: MouseEvent<SVGSVGElement>) => {
-    const snappedPoint = getSnappedPosition(event);
-    if (!snappedPoint) return;
-    const hasElement = documentState.nodes.some((node) => node.x === snappedPoint.x && node.y === snappedPoint.y)
-      || documentState.texts.some((text) => text.x === snappedPoint.x && text.y === snappedPoint.y);
-    if (!hasElement) {
-      dispatchDocument({ type: "addNode", node: createNode(snappedPoint.x, snappedPoint.y) });
-    }
-    dispatchView({ type: "setHoverPos", position: snappedPoint });
-    dispatchView({ type: "setEditing", editing: null });
-    closeMenu();
-  };
-
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      onMouseEnter={() => dispatchView({ type: "setHovering", isHovering: true })}
-      onMouseLeave={() => dispatchView({ type: "setHovering", isHovering: false })}
-      onMouseMove={handleMouseMove}
-      onContextMenu={handleContextMenu}
-      onDoubleClick={handleDoubleClick}
-    >
+    <CanvasSvg>
       <defs>
         <pattern
           id="grid"
@@ -490,6 +423,6 @@ export function Canvas() {
           </g>
         ))}
       </g>
-    </svg>
+    </CanvasSvg>
   );
 }
