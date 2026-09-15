@@ -30,39 +30,41 @@ export function TextShape({ text, selected, onPointerDown, onPointerMove, onPoin
   }, [text.content, text.size]);
 
   return (
-    <g transform={`scale(1 ${grid.height / grid.width}) rotate(${text.orientation === "horizontal" ? 45 : -45})`}>
-      <rect
-        className="text-label-bg"
-        x={-box.width / 2 - textPaddingX}
-        y={-box.height / 2 - textPaddingY}
-        width={box.width + textPaddingX * 2}
-        height={box.height + textPaddingY * 2}
-      />
-      <text ref={textRef}
-        className={`text-label text-size-${text.size}`}
-        x="0" y="0">
-        {text.content}
-      </text>
-      <rect
-        className="menu-selection"
-        x={-box.width / 2 - textPaddingX}
-        y={-box.height / 2 - textPaddingY}
-        width={box.width + textPaddingX * 2}
-        height={box.height + textPaddingY * 2}
-        style={{ opacity: selected ? 1 : 0 }}
-      />
-      <rect
-        className="drag-handle"
-        x={-box.width / 2 - textPaddingX}
-        y={-box.height / 2 - textPaddingY}
-        width={box.width + textPaddingX * 2}
-        height={box.height + textPaddingY * 2}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onContextMenu={onContextMenu}
-        onDoubleClick={(event) => event.stopPropagation()}
-      />
+    <g className="text-element" transform={`translate(${text.x} ${text.y})`}>
+      <g transform={`scale(1 ${grid.height / grid.width}) rotate(${text.orientation === "horizontal" ? 45 : -45})`}>
+        <rect
+          className="text-label-bg"
+          x={-box.width / 2 - textPaddingX}
+          y={-box.height / 2 - textPaddingY}
+          width={box.width + textPaddingX * 2}
+          height={box.height + textPaddingY * 2}
+        />
+        <text ref={textRef}
+          className={`text-label text-size-${text.size}`}
+          x="0" y="0">
+          {text.content}
+        </text>
+        <rect
+          className="menu-selection"
+          x={-box.width / 2 - textPaddingX}
+          y={-box.height / 2 - textPaddingY}
+          width={box.width + textPaddingX * 2}
+          height={box.height + textPaddingY * 2}
+          style={{ opacity: selected ? 1 : 0 }}
+        />
+        <rect
+          className="drag-handle"
+          x={-box.width / 2 - textPaddingX}
+          y={-box.height / 2 - textPaddingY}
+          width={box.width + textPaddingX * 2}
+          height={box.height + textPaddingY * 2}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onContextMenu={onContextMenu}
+          onDoubleClick={(event) => event.stopPropagation()}
+        />
+      </g>
     </g>
   );
 }

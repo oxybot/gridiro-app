@@ -2,18 +2,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { MouseEvent, PointerEvent } from "react";
-import { NodeLabel } from "./NodeLabel";
 import { TextShape } from "./TextShape";
 import { SurfaceShape } from "./SurfaceShape";
 import { ConnectionShape, ConnectionDraftShape } from "./ConnectionShape";
 import type { Connection, Node, SelectedElement, Surface, SurfaceCorner, TextElement } from "../model/types";
-import { createConnection } from "../model/connection";
 import { grid, midHeight, midWidth, snapToIsoGrid, zoomLevels } from "../model/geometry";
 import { useDocumentDispatch, useDocumentState, useViewDispatch, useViewState } from "../state";
 import { usePosition } from "./hooks";
 import { CanvasSvg } from "./CanvasSvg";
 import { CanvasGrid } from "./CanvasGrid";
 import { CanvasHover } from "./CanvasHover";
+import { NodeShape } from "./NodeShape";
 
 export function Canvas() {
   const documentState = useDocumentState();
@@ -122,20 +121,6 @@ export function Canvas() {
     event.currentTarget.releasePointerCapture(event.pointerId);
     dispatchDocument({ type: "finishMove" });
     dispatchView({ type: "setResizingSurface", resizingSurface: null });
-  };
-
-  const handleNodeClick = (event: MouseEvent<SVGPathElement>, node: Node) => {
-    event.stopPropagation();
-    const connectionDraft = view.connectionDraft;
-    if (!connectionDraft || node.id === connectionDraft.sourceId) return;
-    const connectionExists = documentState.connections.some((connection) =>
-      (connection.sourceId === connectionDraft.sourceId && connection.targetId === node.id)
-      || (connection.sourceId === node.id && connection.targetId === connectionDraft.sourceId),
-    );
-    if (!connectionExists) {
-      dispatchDocument({ type: "addConnection", connection: createConnection(connectionDraft.sourceId, node.id) });
-    }
-    dispatchView({ type: "setConnectionDraft", connectionDraft: null });
   };
 
   // Right-clicking anywhere on a text's rendered label should open its menu, not just its center cell.
@@ -263,46 +248,25 @@ export function Canvas() {
         )}
 
         {documentState.nodes.map((node) => (
-          <g key={node.id} className="node" transform={`translate(${node.x} ${node.y})`}>
-            <ellipse cx="0" cy="0" rx={0.3 * midWidth} ry={0.3 * midHeight} stroke="black" fill="white" />
-            {node.label && <line className="node-label-line" y2={-1.3 * grid.height} />}
-            <image
-              className="node-icon"
-              href={node.icon.url}
-              x={-midWidth}
-              y={midHeight - (node.icon.height / node.icon.width * grid.width)}
-              width={grid.width}
-              preserveAspectRatio="xMidYMax meet"
-            />
-            {node.label && <NodeLabel label={node.label} y={-1.3 * grid.height} />}
-            <path
-              className="menu-selection"
-              d={`M 0 ${midHeight} L ${midWidth} 0 ${grid.width} ${midHeight} ${midWidth} ${grid.height} 0 ${midHeight}`}
-              transform={`translate(${-midWidth} ${-midHeight})`}
-              style={{ opacity: view.selectedElements.some((selected) => selected.kind === "node" && selected.id === node.id) || (view.menu.isOpen && view.menu.kind === "node" && view.menu.node?.id === node.id) || (view.editing?.kind === "node" && view.editing.node.id === node.id) ? 1 : 0 }}
-            />
-            <path
-              className="drag-handle"
-              d={`M 0 ${-midHeight} L ${midWidth} 0 0 ${midHeight} ${-midWidth} 0 Z`}
-              onPointerDown={(event) => handleElementPointerDown(event, "node", node)}
-              onPointerMove={handleElementPointerMove}
-              onPointerUp={handleElementPointerUp}
-              onClick={(event) => handleNodeClick(event, node)}
-            />
-          </g>
+          <NodeShape
+            key={node.id}
+            node={node}
+            onElementPointerDown={handleElementPointerDown}
+            onElementPointerMove={handleElementPointerMove}
+            onElementPointerUp={handleElementPointerUp}
+          />
         ))}
 
         {documentState.texts.map((text) => (
-          <g key={text.id} className="text-element" transform={`translate(${text.x} ${text.y})`}>
-            <TextShape
-              text={text}
-              selected={view.selectedElements.some((selected) => selected.kind === "text" && selected.id === text.id) || (view.menu.isOpen && view.menu.kind === "text" && view.menu.text?.id === text.id) || (view.editing?.kind === "text" && view.editing.text.id === text.id)}
-              onPointerDown={(event) => handleElementPointerDown(event, "text", text)}
-              onPointerMove={handleElementPointerMove}
-              onPointerUp={handleElementPointerUp}
-              onContextMenu={(event) => handleTextContextMenu(event, text)}
-            />
-          </g>
+          <TextShape
+            key={text.id}
+            text={text}
+            selected={view.selectedElements.some((selected) => selected.kind === "text" && selected.id === text.id) || (view.menu.isOpen && view.menu.kind === "text" && view.menu.text?.id === text.id) || (view.editing?.kind === "text" && view.editing.text.id === text.id)}
+            onPointerDown={(event) => handleElementPointerDown(event, "text", text)}
+            onPointerMove={handleElementPointerMove}
+            onPointerUp={handleElementPointerUp}
+            onContextMenu={(event) => handleTextContextMenu(event, text)}
+          />
         ))}
       </g>
     </CanvasSvg>
