@@ -38,11 +38,10 @@
       }
     }
 
-    path.hover {
-      fill: var(--blue-6);
-      stroke: none;
-      pointer-events: none;
+    .hover {
       transition: opacity 160ms ease-out;
+      pointer-events: none;
+      color: var(--blue-2);
     }
 
     .menu-selection {

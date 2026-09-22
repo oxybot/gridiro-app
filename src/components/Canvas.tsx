@@ -212,8 +212,6 @@ export function Canvas() {
           />
         ))}
 
-        <CanvasHover />
-
         {documentState.connections.map((connection) => {
           return (
             <ConnectionShape
@@ -228,6 +226,8 @@ export function Canvas() {
         {view.connectionDraft && (
           <ConnectionDraftShape connectionDraft={view.connectionDraft} />
         )}
+
+        <CanvasHover />
 
         {view.menu.isOpen && view.menu.kind === "empty" && (
           <path
